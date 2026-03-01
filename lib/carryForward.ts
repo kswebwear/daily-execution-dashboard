@@ -2,7 +2,7 @@ import { Task } from "./types"
 import { getLastActiveDate, setLastActiveDate } from "./storage"
 
 export function today(): string {
-  return new Date().toISOString().split("T")[0]
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Australia/Sydney" }).format(new Date())
 }
 
 /**

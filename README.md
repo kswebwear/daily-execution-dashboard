@@ -108,6 +108,8 @@ All data lives in your browser's **local storage**. Nothing is sent to a server.
 
 **Data only exists in the browser you use.** It will not sync across devices. Clearing browser data or using a different browser will start fresh.
 
+**Timezone:** All dates are calculated in `Australia/Sydney` time (AEDT/AEST). The day boundary for carry-forward and date-stamping is midnight Sydney time, regardless of where you physically access the app.
+
 ### Task object structure
 
 ```ts
@@ -160,6 +162,7 @@ The last active date is updated to today as part of this check, so the reset onl
 | Backend | None |
 | Auth | None |
 | Deployment | Vercel |
+| Timezone | Australia/Sydney (AEDT/AEST) |
 
 ### Project structure
 

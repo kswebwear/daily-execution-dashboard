@@ -1,10 +1,11 @@
 import TaskBoard from "@/components/TaskBoard"
 
 function getDateLabel(): string {
-  return new Date().toLocaleDateString("en-US", {
+  return new Date().toLocaleDateString("en-AU", {
     weekday: "long",
     month: "long",
     day: "numeric",
+    timeZone: "Australia/Sydney",
   })
 }
 
