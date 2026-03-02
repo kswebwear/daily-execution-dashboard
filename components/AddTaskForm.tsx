@@ -11,6 +11,8 @@ type Props = {
 export default function AddTaskForm({ onAdd }: Props) {
   const [title, setTitle] = useState("")
   const [tag, setTag] = useState("")
+  const [priority, setPriority] = useState<"low" | "medium" | "high">("medium")
+  const [isRecurringDaily, setIsRecurringDaily] = useState(false)
   const [open, setOpen] = useState(false)
 
   function handleSubmit(e: React.FormEvent) {
@@ -26,10 +28,14 @@ export default function AddTaskForm({ onAdd }: Props) {
       status: "pending",
       dailyNotes: [],
       completionHistory: [],
+      priority,
+      isRecurringDaily,
     }
     onAdd(task)
     setTitle("")
     setTag("")
+    setPriority("medium")
+    setIsRecurringDaily(false)
     setOpen(false)
   }
 
@@ -61,6 +67,26 @@ export default function AddTaskForm({ onAdd }: Props) {
         onChange={(e) => setTag(e.target.value)}
         className="w-full bg-transparent text-zinc-400 placeholder-zinc-600 text-xs outline-none"
       />
+      {/* Priority + recurring */}
+      <div className="flex items-center gap-3 pt-0.5">
+        <select
+          value={priority}
+          onChange={(e) => setPriority(e.target.value as "low" | "medium" | "high")}
+          className="bg-transparent text-zinc-500 text-xs outline-none cursor-pointer border border-zinc-700 rounded px-1.5 py-0.5"
+        >
+          <option value="high">↑ High</option>
+          <option value="medium">— Medium</option>
+          <option value="low">↓ Low</option>
+        </select>
+        <label className="flex items-center gap-1.5 text-xs text-zinc-600 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={isRecurringDaily}
+            onChange={(e) => setIsRecurringDaily(e.target.checked)}
+          />
+          ⟳ Recurring
+        </label>
+      </div>
       <div className="flex gap-2 pt-1">
         <button
           type="submit"

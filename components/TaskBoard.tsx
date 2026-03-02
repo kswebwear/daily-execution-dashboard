@@ -18,6 +18,7 @@ import { Task } from "@/lib/types"
 import { loadTasks, saveTasks } from "@/lib/storage"
 import { applyCarryForward, today } from "@/lib/carryForward"
 import { useAuth } from "@/context/AuthContext"
+import { useTheme } from "@/context/ThemeContext"
 import {
   subscribeToTasks,
   addTask,
@@ -29,16 +30,138 @@ import TaskColumn from "./TaskColumn"
 import TaskModal from "./TaskModal"
 import AddTaskForm from "./AddTaskForm"
 import MigrationModal from "./MigrationModal"
+import AnalyticsPanel from "./AnalyticsPanel"
 
+// ── Priority sort weight ──────────────────────────────────────────────────────
+const P_WEIGHT: Record<string, number> = { high: 0, medium: 1, low: 2 }
+
+function sortByPriority(tasks: Task[]): Task[] {
+  return [...tasks].sort((a, b) => {
+    const pa = P_WEIGHT[a.priority ?? "medium"]
+    const pb = P_WEIGHT[b.priority ?? "medium"]
+    if (pa !== pb) return pa - pb
+    return a.createdAt.localeCompare(b.createdAt)
+  })
+}
+
+// ── Tomorrow in Sydney TZ ─────────────────────────────────────────────────────
+function tomorrow(): string {
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Australia/Sydney" }).format(d)
+}
+
+// ── Recurring instance factory ────────────────────────────────────────────────
+function createRecurringInstance(source: Task, allTasks: Task[]): Task | null {
+  // Only create if no pending recurring copy already exists
+  const hasPending = allTasks.some(
+    (t) =>
+      t.id !== source.id &&
+      t.title === source.title &&
+      t.isRecurringDaily === true &&
+      t.status === "pending" &&
+      !(t.archived ?? false)
+  )
+  if (hasPending) return null
+
+  return {
+    id: crypto.randomUUID(),
+    title: source.title,
+    tag: source.tag,
+    createdAt: tomorrow(),
+    status: "pending",
+    dailyNotes: [],
+    completionHistory: [],
+    priority: source.priority,
+    isRecurringDaily: true,
+    archived: false,
+    updatedAt: new Date().toISOString(),
+  }
+}
+
+// ── Focus Mode overlay ────────────────────────────────────────────────────────
+function FocusModeView({
+  tasks,
+  onExit,
+  onTaskClick,
+}: {
+  tasks: Task[]
+  onExit: () => void
+  onTaskClick: (t: Task) => void
+}) {
+  const { theme } = useTheme()
+  const isJarvis = theme === "jarvis"
+
+  return (
+    <div className="focus-overlay">
+      {/* Exit + title bar */}
+      <div className="relative z-10 w-full max-w-lg mb-8 flex items-center justify-between">
+        <div>
+          <p className="text-xs text-zinc-600 uppercase tracking-widest">Focus Mode</p>
+          <p className="text-zinc-500 text-sm mt-0.5">{tasks.length} task{tasks.length !== 1 ? "s" : ""} remaining</p>
+        </div>
+        <button
+          onClick={onExit}
+          className="text-xs text-zinc-600 hover:text-zinc-300 border border-zinc-700 hover:border-zinc-500 px-3 py-1.5 rounded transition-colors"
+        >
+          Exit focus
+        </button>
+      </div>
+
+      {/* Task cards */}
+      <div className="relative z-10 w-full max-w-lg space-y-3">
+        {tasks.length === 0 ? (
+          <p className="text-center text-zinc-600 text-sm">All clear — nothing pending.</p>
+        ) : (
+          tasks.map((task) => (
+            <div
+              key={task.id}
+              onClick={() => onTaskClick(task)}
+              className={`focus-task-card border border-zinc-800 rounded-xl p-4 bg-zinc-900 cursor-pointer hover:border-zinc-600 transition-colors ${isJarvis ? "focus-task-card" : ""}`}
+            >
+              <div className="flex items-start gap-3">
+                {isJarvis && (
+                  <span className={`jarvis-status-dot ${task.status} mt-1`} />
+                )}
+                <div>
+                  <p className="text-zinc-100 text-base font-medium">{task.title}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    {task.tag && (
+                      <span className="text-xs text-zinc-600">{task.tag}</span>
+                    )}
+                    {task.isRecurringDaily && (
+                      <span className="text-xs text-zinc-700">⟳</span>
+                    )}
+                    {(task.priority ?? "medium") === "high" && (
+                      <span className="text-xs text-red-500/60">↑ high</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <p className="relative z-10 mt-10 text-xs text-zinc-700 tracking-widest uppercase">
+        ESC to exit
+      </p>
+    </div>
+  )
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 export default function TaskBoard() {
   const { user } = useAuth()
+  const { focusMode, toggleFocusMode } = useTheme()
   const [tasks, setTasks] = useState<Task[]>([])
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [modalTask, setModalTask] = useState<Task | null>(null)
   const [mounted, setMounted] = useState(false)
   const [showMigration, setShowMigration] = useState(false)
+  const [showAnalytics, setShowAnalytics] = useState(false)
 
-  // Load tasks — from Firestore when logged in, localStorage when logged out
+  // Load tasks — Firestore when logged in, localStorage otherwise
   useEffect(() => {
     if (!user) {
       const loaded = loadTasks()
@@ -49,7 +172,6 @@ export default function TaskBoard() {
       return
     }
 
-    // Check if migration modal should appear
     const migrationKey = `ded_migrated_${user.uid}`
     if (localStorage.getItem(migrationKey) == null) {
       const localTasks = loadTasks()
@@ -60,7 +182,6 @@ export default function TaskBoard() {
       }
     }
 
-    // Subscribe to Firestore
     let firstLoad = true
     const unsub = subscribeToTasks(user.uid, (allTasks) => {
       if (firstLoad) {
@@ -69,7 +190,6 @@ export default function TaskBoard() {
         const carried = applyCarryForward(active)
         const archived = allTasks.filter((t) => t.archived ?? false)
 
-        // Write carry-forward changes back to Firestore
         carried.forEach((task, i) => {
           if (task.status !== active[i]?.status) {
             updateTask(user.uid, task.id, {
@@ -94,7 +214,6 @@ export default function TaskBoard() {
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } })
   )
 
-  // persist — writes to localStorage only when logged out
   function persist(updated: Task[]) {
     setTasks(updated)
     if (!user) saveTasks(updated)
@@ -132,7 +251,10 @@ export default function TaskBoard() {
     if (refreshed) setModalTask(refreshed)
   }
 
-  function handleEdit(taskId: string, updates: { title: string; tag: string }) {
+  function handleEdit(
+    taskId: string,
+    updates: { title: string; tag: string; priority: "low" | "medium" | "high"; isRecurringDaily: boolean }
+  ) {
     const updatedAt = new Date().toISOString()
     const updated = tasks.map((t) => (t.id === taskId ? { ...t, ...updates, updatedAt } : t))
     persist(updated)
@@ -163,6 +285,16 @@ export default function TaskBoard() {
     setShowMigration(false)
   }
 
+  // ── Recurring helper — called after a task is confirmed completed ──────────
+  function maybeAddRecurring(completedId: string, currentTasks: Task[]): Task[] {
+    const completedTask = currentTasks.find((t) => t.id === completedId)
+    if (!completedTask?.isRecurringDaily) return currentTasks
+    const instance = createRecurringInstance(completedTask, currentTasks)
+    if (!instance) return currentTasks
+    if (user) addTask(user.uid, instance)
+    return [...currentTasks, instance]
+  }
+
   function handleDragStart(event: DragStartEvent) {
     const task = tasks.find((t) => t.id === event.active.id)
     setActiveTask(task ?? null)
@@ -174,7 +306,6 @@ export default function TaskBoard() {
 
     const activeId = active.id as string
     const overId = over.id as string
-
     const activeTaskItem = tasks.find((t) => t.id === activeId)
     if (!activeTaskItem) return
 
@@ -182,7 +313,7 @@ export default function TaskBoard() {
     if (isOverColumn && activeTaskItem.status !== overId) {
       const todayStr = today()
       const updatedAt = new Date().toISOString()
-      const updated = tasks.map((t) => {
+      let updated = tasks.map((t) => {
         if (t.id !== activeId) return t
         if (overId === "completed") {
           return {
@@ -194,6 +325,11 @@ export default function TaskBoard() {
         }
         return { ...t, status: "pending" as const, updatedAt }
       })
+
+      if (overId === "completed") {
+        updated = maybeAddRecurring(activeId, updated)
+      }
+
       persist(updated)
       if (user) {
         const changed = updated.find((t) => t.id === activeId)!
@@ -218,7 +354,7 @@ export default function TaskBoard() {
     const overTask = tasks.find((t) => t.id === overId)
     if (!activeTaskItem) return
 
-    // Same-column reorder — local only, not synced to Firestore
+    // Same-column reorder
     if (overTask && activeTaskItem.status === overTask.status) {
       const sameColumn = tasks.filter((t) => t.status === activeTaskItem.status)
       const otherColumn = tasks.filter((t) => t.status !== activeTaskItem.status)
@@ -236,34 +372,36 @@ export default function TaskBoard() {
       return
     }
 
-    // Cross-column drop — already handled in dragOver for the most part
+    // Cross-column drop — handle if dragOver didn't already
     const isOverColumn = overId === "pending" || overId === "completed"
-    if (isOverColumn) {
+    if (isOverColumn && activeTaskItem.status !== overId) {
       const todayStr = today()
-      const alreadyUpdated = tasks.find((t) => t.id === activeId)
-      if (alreadyUpdated?.status !== overId) {
-        const updatedAt = new Date().toISOString()
-        const updated = tasks.map((t) => {
-          if (t.id !== activeId) return t
-          if (overId === "completed") {
-            return {
-              ...t,
-              status: "completed" as const,
-              completionHistory: [...t.completionHistory, { date: todayStr }],
-              updatedAt,
-            }
-          }
-          return { ...t, status: "pending" as const, updatedAt }
-        })
-        persist(updated)
-        if (user) {
-          const changed = updated.find((t) => t.id === activeId)!
-          updateTask(user.uid, activeId, {
-            status: changed.status,
-            completionHistory: changed.completionHistory,
+      const updatedAt = new Date().toISOString()
+      let updated = tasks.map((t) => {
+        if (t.id !== activeId) return t
+        if (overId === "completed") {
+          return {
+            ...t,
+            status: "completed" as const,
+            completionHistory: [...t.completionHistory, { date: todayStr }],
             updatedAt,
-          })
+          }
         }
+        return { ...t, status: "pending" as const, updatedAt }
+      })
+
+      if (overId === "completed") {
+        updated = maybeAddRecurring(activeId, updated)
+      }
+
+      persist(updated)
+      if (user) {
+        const changed = updated.find((t) => t.id === activeId)!
+        updateTask(user.uid, activeId, {
+          status: changed.status,
+          completionHistory: changed.completionHistory,
+          updatedAt,
+        })
       }
     }
   }
@@ -271,13 +409,50 @@ export default function TaskBoard() {
   if (!mounted) return null
 
   const activeTasks = tasks.filter((t) => !(t.archived ?? false))
-  const pendingTasks = activeTasks.filter((t) => t.status === "pending")
+  const pendingTasks = sortByPriority(activeTasks.filter((t) => t.status === "pending"))
   const completedTasks = activeTasks.filter((t) => t.status === "completed")
 
   return (
     <>
       {showMigration && (
         <MigrationModal onConfirm={handleMigrate} onSkip={handleSkipMigration} />
+      )}
+
+      {/* Focus Mode full-screen overlay */}
+      {focusMode && (
+        <FocusModeView
+          tasks={pendingTasks.slice(0, 3)}
+          onExit={toggleFocusMode}
+          onTaskClick={setModalTask}
+        />
+      )}
+
+      {/* Controls bar */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleFocusMode}
+            className="cyber-outline-btn text-xs text-zinc-600 hover:text-zinc-300 border border-zinc-800 hover:border-zinc-600 px-3 py-1.5 rounded transition-colors"
+          >
+            {focusMode ? "Exit focus" : "Focus mode"}
+          </button>
+          <button
+            onClick={() => setShowAnalytics((v) => !v)}
+            className="cyber-outline-btn text-xs text-zinc-600 hover:text-zinc-300 border border-zinc-800 hover:border-zinc-600 px-3 py-1.5 rounded transition-colors"
+          >
+            {showAnalytics ? "Hide analytics" : "Analytics"}
+          </button>
+        </div>
+        <span className="text-xs text-zinc-700 tabular-nums">
+          {pendingTasks.length} pending · {completedTasks.length} done
+        </span>
+      </div>
+
+      {/* Analytics panel */}
+      {showAnalytics && (
+        <div className="mb-8">
+          <AnalyticsPanel tasks={tasks} onClose={() => setShowAnalytics(false)} />
+        </div>
       )}
 
       <DndContext

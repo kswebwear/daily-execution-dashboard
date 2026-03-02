@@ -4,13 +4,23 @@ import { useState } from "react"
 import { Task } from "@/lib/types"
 import { today } from "@/lib/carryForward"
 
+type EditUpdates = {
+  title: string
+  tag: string
+  priority: "low" | "medium" | "high"
+  isRecurringDaily: boolean
+}
+
 type Props = {
   task: Task
   onClose: () => void
   onSaveNote: (taskId: string, note: string) => void
-  onEdit?: (taskId: string, updates: { title: string; tag: string }) => void
+  onEdit?: (taskId: string, updates: EditUpdates) => void
   onArchive?: (taskId: string) => void
 }
+
+const PRIORITY_LABELS: Record<string, string> = { high: "High", medium: "Medium", low: "Low" }
+const PRIORITY_CYCLE: Array<"low" | "medium" | "high"> = ["low", "medium", "high"]
 
 export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive }: Props) {
   const todayStr = today()
@@ -19,11 +29,11 @@ export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive
   const [editing, setEditing] = useState(false)
   const [editTitle, setEditTitle] = useState(task.title)
   const [editTag, setEditTag] = useState(task.tag)
+  const [editPriority, setEditPriority] = useState<"low" | "medium" | "high">(task.priority ?? "medium")
+  const [editRecurring, setEditRecurring] = useState(task.isRecurringDaily ?? false)
 
   const allNotes = [...task.dailyNotes].sort((a, b) => b.date.localeCompare(a.date))
-  const allHistory = [...task.completionHistory].sort((a, b) =>
-    b.date.localeCompare(a.date)
-  )
+  const allHistory = [...task.completionHistory].sort((a, b) => b.date.localeCompare(a.date))
 
   function handleSave() {
     onSaveNote(task.id, noteText)
@@ -33,20 +43,19 @@ export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive
   function handleSaveEdit() {
     const trimmed = editTitle.trim()
     if (!trimmed) return
-    if (onEdit) onEdit(task.id, { title: trimmed, tag: editTag.trim() })
+    if (onEdit) onEdit(task.id, { title: trimmed, tag: editTag.trim(), priority: editPriority, isRecurringDaily: editRecurring })
     setEditing(false)
   }
 
-  function handleArchiveClick() {
-    if (onArchive) onArchive(task.id)
+  function cyclePriority() {
+    const idx = PRIORITY_CYCLE.indexOf(editPriority)
+    setEditPriority(PRIORITY_CYCLE[(idx + 1) % PRIORITY_CYCLE.length])
   }
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div className="cyber-panel bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-lg max-h-[85vh] flex flex-col">
         {/* Header */}
@@ -67,6 +76,26 @@ export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive
                   placeholder="Tag (optional)"
                   className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-zinc-400 text-xs outline-none focus:border-zinc-500 placeholder-zinc-600"
                 />
+                {/* Priority & recurring row */}
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={cyclePriority}
+                    className="text-xs text-zinc-400 hover:text-zinc-200 border border-zinc-700 hover:border-zinc-500 px-2 py-1 rounded transition-colors"
+                    title="Cycle priority"
+                  >
+                    Priority: {PRIORITY_LABELS[editPriority]}
+                  </button>
+                  <label className="flex items-center gap-1.5 text-xs text-zinc-500 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={editRecurring}
+                      onChange={(e) => setEditRecurring(e.target.checked)}
+                      className="accent-current"
+                    />
+                    Recurring daily
+                  </label>
+                </div>
                 <div className="flex gap-2">
                   <button
                     onClick={handleSaveEdit}
@@ -78,6 +107,8 @@ export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive
                     onClick={() => {
                       setEditTitle(task.title)
                       setEditTag(task.tag)
+                      setEditPriority(task.priority ?? "medium")
+                      setEditRecurring(task.isRecurringDaily ?? false)
                       setEditing(false)
                     }}
                     className="px-3 py-1 text-zinc-500 hover:text-zinc-300 text-xs transition-colors"
@@ -89,13 +120,21 @@ export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive
             ) : (
               <>
                 <h2 className="text-zinc-100 font-medium text-base">{task.title}</h2>
-                <div className="flex items-center gap-3 mt-1">
+                <div className="flex items-center gap-3 mt-1 flex-wrap">
                   {task.tag && (
                     <span className="text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded">
                       {task.tag}
                     </span>
                   )}
                   <span className="text-xs text-zinc-600">Created {task.createdAt}</span>
+                  {(task.priority ?? "medium") !== "medium" && (
+                    <span className="text-xs text-zinc-600">
+                      {task.priority === "high" ? "↑ High priority" : "↓ Low priority"}
+                    </span>
+                  )}
+                  {task.isRecurringDaily && (
+                    <span className="text-xs text-zinc-600">⟳ Recurring</span>
+                  )}
                 </div>
               </>
             )}
@@ -113,7 +152,7 @@ export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive
               )}
               {onArchive && (
                 <button
-                  onClick={handleArchiveClick}
+                  onClick={() => onArchive(task.id)}
                   className="text-xs text-zinc-600 hover:text-red-500 px-2 py-1 rounded transition-colors"
                 >
                   Archive

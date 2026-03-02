@@ -15,4 +15,7 @@ export type Task = {
   // V2.0 additions (optional for backward compat with V1 localStorage data)
   archived?: boolean   // soft delete flag; absent = false
   updatedAt?: string   // ISO timestamp of last mutation
+  // V2.2 additions (optional for backward compat)
+  priority?: "low" | "medium" | "high"  // default = "medium"
+  isRecurringDaily?: boolean             // default = false
 }

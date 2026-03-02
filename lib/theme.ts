@@ -1,4 +1,4 @@
-export type Theme = "minimal" | "cyber"
+export type Theme = "minimal" | "cyber" | "jarvis"
 
 export const THEME_KEY = "ded_theme"
 
