@@ -12,4 +12,7 @@ export type Task = {
     date: string // YYYY-MM-DD
     note?: string
   }[]
+  // V2.0 additions (optional for backward compat with V1 localStorage data)
+  archived?: boolean   // soft delete flag; absent = false
+  updatedAt?: string   // ISO timestamp of last mutation
 }

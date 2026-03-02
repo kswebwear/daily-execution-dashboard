@@ -17,37 +17,150 @@ import { arrayMove } from "@dnd-kit/sortable"
 import { Task } from "@/lib/types"
 import { loadTasks, saveTasks } from "@/lib/storage"
 import { applyCarryForward, today } from "@/lib/carryForward"
+import { useAuth } from "@/context/AuthContext"
+import {
+  subscribeToTasks,
+  addTask,
+  updateTask,
+  permanentDeleteTask as _permanentDeleteTask,
+  migrateTasks,
+} from "@/lib/firestore"
 import TaskColumn from "./TaskColumn"
 import TaskModal from "./TaskModal"
 import AddTaskForm from "./AddTaskForm"
+import MigrationModal from "./MigrationModal"
 
 export default function TaskBoard() {
+  const { user } = useAuth()
   const [tasks, setTasks] = useState<Task[]>([])
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [modalTask, setModalTask] = useState<Task | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [showMigration, setShowMigration] = useState(false)
 
-  // Load from localStorage on mount, apply carry-forward
+  // Load tasks — from Firestore when logged in, localStorage when logged out
   useEffect(() => {
-    const loaded = loadTasks()
-    const carried = applyCarryForward(loaded)
-    setTasks(carried)
-    if (loaded !== carried) saveTasks(carried)
-    setMounted(true)
-  }, [])
+    if (!user) {
+      const loaded = loadTasks()
+      const carried = applyCarryForward(loaded)
+      setTasks(carried)
+      if (loaded !== carried) saveTasks(carried)
+      setMounted(true)
+      return
+    }
+
+    // Check if migration modal should appear
+    const migrationKey = `ded_migrated_${user.uid}`
+    if (localStorage.getItem(migrationKey) == null) {
+      const localTasks = loadTasks()
+      if (localTasks.length > 0) {
+        setShowMigration(true)
+      } else {
+        localStorage.setItem(migrationKey, "done")
+      }
+    }
+
+    // Subscribe to Firestore
+    let firstLoad = true
+    const unsub = subscribeToTasks(user.uid, (allTasks) => {
+      if (firstLoad) {
+        firstLoad = false
+        const active = allTasks.filter((t) => !(t.archived ?? false))
+        const carried = applyCarryForward(active)
+        const archived = allTasks.filter((t) => t.archived ?? false)
+
+        // Write carry-forward changes back to Firestore
+        carried.forEach((task, i) => {
+          if (task.status !== active[i]?.status) {
+            updateTask(user.uid, task.id, {
+              status: task.status,
+              updatedAt: new Date().toISOString(),
+            })
+          }
+        })
+
+        setTasks([...carried, ...archived])
+      } else {
+        setTasks(allTasks)
+      }
+      setMounted(true)
+    })
+
+    return () => unsub()
+  }, [user])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } })
   )
 
+  // persist — writes to localStorage only when logged out
   function persist(updated: Task[]) {
     setTasks(updated)
-    saveTasks(updated)
+    if (!user) saveTasks(updated)
   }
 
   function handleAdd(task: Task) {
-    persist([...tasks, task])
+    const now = new Date().toISOString()
+    const full: Task = { ...task, archived: false, updatedAt: now }
+    persist([...tasks, full])
+    if (user) addTask(user.uid, full)
+  }
+
+  function handleSaveNote(taskId: string, noteText: string) {
+    const todayStr = today()
+    const updatedAt = new Date().toISOString()
+    const updated = tasks.map((t) => {
+      if (t.id !== taskId) return t
+      const existing = t.dailyNotes.findIndex((n) => n.date === todayStr)
+      let notes = [...t.dailyNotes]
+      if (noteText.trim() === "") {
+        notes = notes.filter((n) => n.date !== todayStr)
+      } else if (existing >= 0) {
+        notes[existing] = { date: todayStr, text: noteText }
+      } else {
+        notes.push({ date: todayStr, text: noteText })
+      }
+      return { ...t, dailyNotes: notes, updatedAt }
+    })
+    persist(updated)
+    if (user) {
+      const changed = updated.find((t) => t.id === taskId)!
+      updateTask(user.uid, taskId, { dailyNotes: changed.dailyNotes, updatedAt })
+    }
+    const refreshed = updated.find((t) => t.id === taskId)
+    if (refreshed) setModalTask(refreshed)
+  }
+
+  function handleEdit(taskId: string, updates: { title: string; tag: string }) {
+    const updatedAt = new Date().toISOString()
+    const updated = tasks.map((t) => (t.id === taskId ? { ...t, ...updates, updatedAt } : t))
+    persist(updated)
+    if (user) updateTask(user.uid, taskId, { ...updates, updatedAt })
+    const refreshed = updated.find((t) => t.id === taskId)
+    if (refreshed) setModalTask(refreshed)
+  }
+
+  function handleArchive(taskId: string) {
+    const updatedAt = new Date().toISOString()
+    const updated = tasks.map((t) => (t.id === taskId ? { ...t, archived: true, updatedAt } : t))
+    persist(updated)
+    if (user) updateTask(user.uid, taskId, { archived: true, updatedAt })
+    setModalTask(null)
+  }
+
+  async function handleMigrate() {
+    if (!user) return
+    const localTasks = loadTasks()
+    await migrateTasks(user.uid, localTasks)
+    localStorage.setItem(`ded_migrated_${user.uid}`, "done")
+    setShowMigration(false)
+  }
+
+  function handleSkipMigration() {
+    if (!user) return
+    localStorage.setItem(`ded_migrated_${user.uid}`, "skipped")
+    setShowMigration(false)
   }
 
   function handleDragStart(event: DragStartEvent) {
@@ -62,13 +175,13 @@ export default function TaskBoard() {
     const activeId = active.id as string
     const overId = over.id as string
 
-    const activeTask = tasks.find((t) => t.id === activeId)
-    if (!activeTask) return
+    const activeTaskItem = tasks.find((t) => t.id === activeId)
+    if (!activeTaskItem) return
 
-    // Dropped over a column droppable
     const isOverColumn = overId === "pending" || overId === "completed"
-    if (isOverColumn && activeTask.status !== overId) {
+    if (isOverColumn && activeTaskItem.status !== overId) {
       const todayStr = today()
+      const updatedAt = new Date().toISOString()
       const updated = tasks.map((t) => {
         if (t.id !== activeId) return t
         if (overId === "completed") {
@@ -76,11 +189,20 @@ export default function TaskBoard() {
             ...t,
             status: "completed" as const,
             completionHistory: [...t.completionHistory, { date: todayStr }],
+            updatedAt,
           }
         }
-        return { ...t, status: "pending" as const }
+        return { ...t, status: "pending" as const, updatedAt }
       })
       persist(updated)
+      if (user) {
+        const changed = updated.find((t) => t.id === activeId)!
+        updateTask(user.uid, activeId, {
+          status: changed.status,
+          completionHistory: changed.completionHistory,
+          updatedAt,
+        })
+      }
     }
   }
 
@@ -92,33 +214,35 @@ export default function TaskBoard() {
     const activeId = active.id as string
     const overId = over.id as string
 
-    const activeTask = tasks.find((t) => t.id === activeId)
+    const activeTaskItem = tasks.find((t) => t.id === activeId)
     const overTask = tasks.find((t) => t.id === overId)
-    if (!activeTask) return
+    if (!activeTaskItem) return
 
-    // If dropped over another task in the same column — reorder
-    if (overTask && activeTask.status === overTask.status) {
-      const sameColumn = tasks.filter((t) => t.status === activeTask.status)
-      const otherColumn = tasks.filter((t) => t.status !== activeTask.status)
+    // Same-column reorder — local only, not synced to Firestore
+    if (overTask && activeTaskItem.status === overTask.status) {
+      const sameColumn = tasks.filter((t) => t.status === activeTaskItem.status)
+      const otherColumn = tasks.filter((t) => t.status !== activeTaskItem.status)
       const oldIndex = sameColumn.findIndex((t) => t.id === activeId)
       const newIndex = sameColumn.findIndex((t) => t.id === overId)
       if (oldIndex !== newIndex) {
         const reordered = arrayMove(sameColumn, oldIndex, newIndex)
-        persist(
-          activeTask.status === "pending"
+        const all =
+          activeTaskItem.status === "pending"
             ? [...reordered, ...otherColumn]
             : [...otherColumn, ...reordered]
-        )
+        setTasks(all)
+        if (!user) saveTasks(all)
       }
       return
     }
 
-    // If dropped over a column header — already handled in dragOver
+    // Cross-column drop — already handled in dragOver for the most part
     const isOverColumn = overId === "pending" || overId === "completed"
     if (isOverColumn) {
       const todayStr = today()
       const alreadyUpdated = tasks.find((t) => t.id === activeId)
       if (alreadyUpdated?.status !== overId) {
+        const updatedAt = new Date().toISOString()
         const updated = tasks.map((t) => {
           if (t.id !== activeId) return t
           if (overId === "completed") {
@@ -126,43 +250,36 @@ export default function TaskBoard() {
               ...t,
               status: "completed" as const,
               completionHistory: [...t.completionHistory, { date: todayStr }],
+              updatedAt,
             }
           }
-          return { ...t, status: "pending" as const }
+          return { ...t, status: "pending" as const, updatedAt }
         })
         persist(updated)
+        if (user) {
+          const changed = updated.find((t) => t.id === activeId)!
+          updateTask(user.uid, activeId, {
+            status: changed.status,
+            completionHistory: changed.completionHistory,
+            updatedAt,
+          })
+        }
       }
     }
   }
 
-  function handleSaveNote(taskId: string, noteText: string) {
-    const todayStr = today()
-    const updated = tasks.map((t) => {
-      if (t.id !== taskId) return t
-      const existing = t.dailyNotes.findIndex((n) => n.date === todayStr)
-      let notes = [...t.dailyNotes]
-      if (noteText.trim() === "") {
-        notes = notes.filter((n) => n.date !== todayStr)
-      } else if (existing >= 0) {
-        notes[existing] = { date: todayStr, text: noteText }
-      } else {
-        notes.push({ date: todayStr, text: noteText })
-      }
-      return { ...t, dailyNotes: notes }
-    })
-    persist(updated)
-    // Update modal task if open
-    const refreshed = updated.find((t) => t.id === taskId)
-    if (refreshed) setModalTask(refreshed)
-  }
-
   if (!mounted) return null
 
-  const pendingTasks = tasks.filter((t) => t.status === "pending")
-  const completedTasks = tasks.filter((t) => t.status === "completed")
+  const activeTasks = tasks.filter((t) => !(t.archived ?? false))
+  const pendingTasks = activeTasks.filter((t) => t.status === "pending")
+  const completedTasks = activeTasks.filter((t) => t.status === "completed")
 
   return (
     <>
+      {showMigration && (
+        <MigrationModal onConfirm={handleMigrate} onSkip={handleSkipMigration} />
+      )}
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -203,6 +320,8 @@ export default function TaskBoard() {
           task={modalTask}
           onClose={() => setModalTask(null)}
           onSaveNote={handleSaveNote}
+          onEdit={handleEdit}
+          onArchive={handleArchive}
         />
       )}
     </>

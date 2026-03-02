@@ -8,12 +8,17 @@ type Props = {
   task: Task
   onClose: () => void
   onSaveNote: (taskId: string, note: string) => void
+  onEdit?: (taskId: string, updates: { title: string; tag: string }) => void
+  onArchive?: (taskId: string) => void
 }
 
-export default function TaskModal({ task, onClose, onSaveNote }: Props) {
+export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive }: Props) {
   const todayStr = today()
   const existingNote = task.dailyNotes.find((n) => n.date === todayStr)?.text ?? ""
   const [noteText, setNoteText] = useState(existingNote)
+  const [editing, setEditing] = useState(false)
+  const [editTitle, setEditTitle] = useState(task.title)
+  const [editTag, setEditTag] = useState(task.tag)
 
   const allNotes = [...task.dailyNotes].sort((a, b) => b.date.localeCompare(a.date))
   const allHistory = [...task.completionHistory].sort((a, b) =>
@@ -23,6 +28,17 @@ export default function TaskModal({ task, onClose, onSaveNote }: Props) {
   function handleSave() {
     onSaveNote(task.id, noteText)
     onClose()
+  }
+
+  function handleSaveEdit() {
+    const trimmed = editTitle.trim()
+    if (!trimmed) return
+    if (onEdit) onEdit(task.id, { title: trimmed, tag: editTag.trim() })
+    setEditing(false)
+  }
+
+  function handleArchiveClick() {
+    if (onArchive) onArchive(task.id)
   }
 
   return (
@@ -35,23 +51,82 @@ export default function TaskModal({ task, onClose, onSaveNote }: Props) {
       <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-lg max-h-[85vh] flex flex-col">
         {/* Header */}
         <div className="flex items-start justify-between p-5 border-b border-zinc-800">
-          <div>
-            <h2 className="text-zinc-100 font-medium text-base">{task.title}</h2>
-            <div className="flex items-center gap-3 mt-1">
-              {task.tag && (
-                <span className="text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded">
-                  {task.tag}
-                </span>
-              )}
-              <span className="text-xs text-zinc-600">Created {task.createdAt}</span>
-            </div>
+          <div className="flex-1 min-w-0">
+            {editing ? (
+              <div className="space-y-2 pr-2">
+                <input
+                  autoFocus
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
+                  className="w-full bg-zinc-800 border border-zinc-600 rounded px-2 py-1 text-zinc-100 text-sm outline-none focus:border-zinc-400"
+                />
+                <input
+                  value={editTag}
+                  onChange={(e) => setEditTag(e.target.value)}
+                  placeholder="Tag (optional)"
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-zinc-400 text-xs outline-none focus:border-zinc-500 placeholder-zinc-600"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSaveEdit}
+                    className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-xs rounded transition-colors"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditTitle(task.title)
+                      setEditTag(task.tag)
+                      setEditing(false)
+                    }}
+                    className="px-3 py-1 text-zinc-500 hover:text-zinc-300 text-xs transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <h2 className="text-zinc-100 font-medium text-base">{task.title}</h2>
+                <div className="flex items-center gap-3 mt-1">
+                  {task.tag && (
+                    <span className="text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded">
+                      {task.tag}
+                    </span>
+                  )}
+                  <span className="text-xs text-zinc-600">Created {task.createdAt}</span>
+                </div>
+              </>
+            )}
           </div>
-          <button
-            onClick={onClose}
-            className="text-zinc-600 hover:text-zinc-300 text-xl leading-none ml-4"
-          >
-            ×
-          </button>
+
+          {!editing && (
+            <div className="flex items-center gap-1 ml-4 shrink-0">
+              {onEdit && (
+                <button
+                  onClick={() => setEditing(true)}
+                  className="text-xs text-zinc-600 hover:text-zinc-400 px-2 py-1 rounded transition-colors"
+                >
+                  Edit
+                </button>
+              )}
+              {onArchive && (
+                <button
+                  onClick={handleArchiveClick}
+                  className="text-xs text-zinc-600 hover:text-red-500 px-2 py-1 rounded transition-colors"
+                >
+                  Archive
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="text-zinc-600 hover:text-zinc-300 text-xl leading-none px-1"
+              >
+                ×
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Scrollable content */}
