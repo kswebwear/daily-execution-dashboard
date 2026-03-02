@@ -37,7 +37,7 @@ export default function AddTaskForm({ onAdd }: Props) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="w-full border border-dashed border-zinc-700 rounded-lg py-3 text-zinc-500 hover:text-zinc-300 hover:border-zinc-500 transition-colors text-sm"
+        className="add-task-btn w-full border border-dashed border-zinc-700 rounded-lg py-3 text-zinc-500 hover:text-zinc-300 hover:border-zinc-500 transition-colors text-sm"
       >
         + Add task
       </button>
@@ -45,7 +45,7 @@ export default function AddTaskForm({ onAdd }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="border border-zinc-700 rounded-lg p-3 space-y-2 bg-zinc-900">
+    <form onSubmit={handleSubmit} className="add-task-form border border-zinc-700 rounded-lg p-3 space-y-2 bg-zinc-900">
       <input
         autoFocus
         type="text"

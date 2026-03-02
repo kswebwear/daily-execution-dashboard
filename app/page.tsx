@@ -1,5 +1,7 @@
 import TaskBoard from "@/components/TaskBoard"
 import AuthButton from "@/components/AuthButton"
+import ThemeToggle from "@/components/ThemeToggle"
+import LiveClock from "@/components/LiveClock"
 import Link from "next/link"
 
 function getDateLabel(): string {
@@ -15,7 +17,7 @@ export default function Home() {
   const dateLabel = getDateLabel()
 
   return (
-    <main className="min-h-screen bg-[#111111] px-4 py-8 md:px-8 md:py-12">
+    <main className="min-h-screen px-4 py-8 md:px-8 md:py-12">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <header className="mb-10 flex items-start justify-between gap-4">
@@ -25,13 +27,15 @@ export default function Home() {
               Daily Execution
             </h1>
           </div>
-          <div className="flex items-center gap-4 pt-1">
+          <div className="flex items-center gap-3 pt-1 flex-wrap justify-end">
+            <LiveClock />
             <Link
               href="/archive"
               className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
             >
               Archive
             </Link>
+            <ThemeToggle />
             <AuthButton />
           </div>
         </header>

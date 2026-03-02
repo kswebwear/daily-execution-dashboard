@@ -54,11 +54,11 @@ export default function ArchivePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#111111] px-4 py-8 md:px-8 md:py-12">
+    <main className="min-h-screen px-4 py-8 md:px-8 md:py-12">
       <div className="max-w-4xl mx-auto">
         <header className="mb-10 flex items-center justify-between">
           <div>
-            <p className="text-xs text-zinc-600 uppercase tracking-widest mb-1">Archive</p>
+            <p className="task-column-header text-xs text-zinc-600 uppercase tracking-widest mb-1">Archive</p>
             <h1 className="text-2xl font-semibold text-zinc-100 tracking-tight">
               Archived tasks
             </h1>

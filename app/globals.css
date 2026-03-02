@@ -1,9 +1,22 @@
 @import "tailwindcss";
 
+/* =========================================================
+   THEME: CSS VARIABLES
+   ========================================================= */
+
 :root {
   --background: #111111;
   --foreground: #e5e5e5;
+
+  /* Neon palette (referenced in cyber mode) */
+  --neon-cyan: #00e5ff;
+  --neon-magenta: #ff00ff;
+  --neon-green: #39ff14;
 }
+
+/* =========================================================
+   BASE STYLES
+   ========================================================= */
 
 body {
   background: var(--background);
@@ -16,7 +29,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Custom scrollbar for dark theme */
+/* Scrollbar — minimal */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -25,5 +38,158 @@ body {
 }
 ::-webkit-scrollbar-thumb {
   background: #3f3f46;
+  border-radius: 3px;
+}
+
+/* =========================================================
+   CYBERPUNK THEME — all rules scoped to html.cyber
+   ========================================================= */
+
+/* --- Animated gradient background --- */
+html.cyber body {
+  background: linear-gradient(135deg, #050510 0%, #0a0a2e 30%, #050520 65%, #0d0518 100%);
+  background-size: 400% 400%;
+  animation: cyberGradient 22s ease infinite;
+}
+
+@keyframes cyberGradient {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* --- Typography --- */
+html.cyber h1,
+html.cyber h2 {
+  font-family: var(--font-orbitron), "Courier New", monospace;
+  letter-spacing: 0.06em;
+}
+
+/* --- Task cards: glassmorphism --- */
+html.cyber .task-card {
+  background: rgba(8, 8, 32, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-color: rgba(0, 229, 255, 0.18);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+html.cyber .task-card:hover {
+  border-color: rgba(0, 229, 255, 0.55);
+  box-shadow: 0 0 22px rgba(0, 229, 255, 0.1), 0 0 8px rgba(0, 229, 255, 0.06);
+}
+
+/* --- Drag overlay --- */
+html.cyber .task-drag-overlay {
+  background: rgba(8, 8, 32, 0.72);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-color: rgba(0, 229, 255, 0.55);
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.18);
+}
+
+/* --- Column headers --- */
+html.cyber .task-column-header {
+  color: var(--neon-cyan);
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.45);
+}
+
+/* --- Drop zone hover state --- */
+html.cyber .task-drop-zone[data-over="true"] {
+  background: rgba(0, 229, 255, 0.04);
+}
+
+/* --- Empty column placeholder --- */
+html.cyber .task-empty-placeholder {
+  border-color: rgba(0, 229, 255, 0.1);
+  color: rgba(0, 229, 255, 0.3);
+}
+
+/* --- Modals / panels --- */
+html.cyber .cyber-panel {
+  background: rgba(6, 6, 24, 0.88);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border-color: rgba(0, 229, 255, 0.22);
+}
+
+html.cyber .cyber-panel-divider {
+  border-color: rgba(0, 229, 255, 0.1);
+}
+
+/* --- Theme toggle button --- */
+html.cyber .theme-toggle-btn {
+  color: var(--neon-cyan);
+  border-color: rgba(0, 229, 255, 0.4);
+  text-shadow: 0 0 6px rgba(0, 229, 255, 0.5);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.07);
+}
+
+html.cyber .theme-toggle-btn:hover {
+  color: var(--neon-cyan);
+  border-color: rgba(0, 229, 255, 0.8);
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.2);
+}
+
+/* --- Live clock --- */
+html.cyber .live-clock {
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.65);
+  font-family: var(--font-orbitron), "Courier New", monospace;
+  letter-spacing: 0.12em;
+}
+
+/* --- Add task button --- */
+html.cyber .add-task-btn {
+  border-color: rgba(0, 229, 255, 0.18);
+  color: rgba(0, 229, 255, 0.45);
+}
+
+html.cyber .add-task-btn:hover {
+  border-color: rgba(0, 229, 255, 0.5);
+  color: rgba(0, 229, 255, 0.85);
+}
+
+/* --- Inputs & textareas --- */
+html.cyber input:not([type="submit"]):not([type="button"]),
+html.cyber textarea {
+  background: rgba(8, 8, 32, 0.65);
+  border-color: rgba(0, 229, 255, 0.22);
+  color: #e0e0ff;
+}
+
+html.cyber input:not([type="submit"]):not([type="button"]):focus,
+html.cyber textarea:focus {
+  border-color: rgba(0, 229, 255, 0.55);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.08);
+  outline: none;
+}
+
+/* --- Add task form --- */
+html.cyber .add-task-form {
+  background: rgba(8, 8, 32, 0.6);
+  border-color: rgba(0, 229, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* --- Generic outline buttons in cyber mode --- */
+html.cyber .cyber-outline-btn {
+  border-color: rgba(0, 229, 255, 0.25);
+  color: rgba(0, 229, 255, 0.6);
+}
+
+html.cyber .cyber-outline-btn:hover {
+  border-color: rgba(0, 229, 255, 0.55);
+  color: rgba(0, 229, 255, 0.9);
+}
+
+/* --- Scrollbar in cyber mode --- */
+html.cyber ::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.2);
   border-radius: 3px;
 }

@@ -305,7 +305,7 @@ export default function TaskBoard() {
 
         <DragOverlay>
           {activeTask ? (
-            <div className="border border-blue-500/50 rounded-lg p-3 bg-zinc-900 shadow-xl opacity-90">
+            <div className="task-drag-overlay border border-blue-500/50 rounded-lg p-3 bg-zinc-900 shadow-xl opacity-90">
               <p className="text-sm text-zinc-200">{activeTask.title}</p>
               {activeTask.tag && (
                 <span className="text-xs text-zinc-600 mt-1 inline-block">{activeTask.tag}</span>

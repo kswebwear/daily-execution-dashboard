@@ -48,9 +48,9 @@ export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-lg max-h-[85vh] flex flex-col">
+      <div className="cyber-panel bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-lg max-h-[85vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-start justify-between p-5 border-b border-zinc-800">
+        <div className="flex items-start justify-between p-5 border-b border-zinc-800 cyber-panel-divider">
           <div className="flex-1 min-w-0">
             {editing ? (
               <div className="space-y-2 pr-2">

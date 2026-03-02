@@ -20,7 +20,7 @@ export default function TaskColumn({ id, label, tasks, onTaskClick, footer }: Pr
     <div className="flex flex-col gap-3">
       {/* Column header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xs text-zinc-500 uppercase tracking-widest font-medium">
+        <h2 className="task-column-header text-xs text-zinc-500 uppercase tracking-widest font-medium">
           {label}
         </h2>
         <span className="text-xs text-zinc-700 tabular-nums">{tasks.length}</span>
@@ -29,7 +29,8 @@ export default function TaskColumn({ id, label, tasks, onTaskClick, footer }: Pr
       {/* Drop zone */}
       <div
         ref={setNodeRef}
-        className={`flex flex-col gap-2 min-h-[120px] rounded-xl p-2 transition-colors ${
+        data-over={isOver ? "true" : "false"}
+        className={`task-drop-zone flex flex-col gap-2 min-h-[120px] rounded-xl p-2 transition-colors ${
           isOver ? "bg-zinc-800/50" : "bg-transparent"
         }`}
       >
@@ -40,7 +41,7 @@ export default function TaskColumn({ id, label, tasks, onTaskClick, footer }: Pr
         </SortableContext>
 
         {tasks.length === 0 && (
-          <div className="flex items-center justify-center h-20 text-zinc-700 text-xs border border-dashed border-zinc-800 rounded-lg">
+          <div className="task-empty-placeholder flex items-center justify-center h-20 text-zinc-700 text-xs border border-dashed border-zinc-800 rounded-lg">
             {id === "pending" ? "No pending tasks" : "Nothing completed yet"}
           </div>
         )}
