@@ -682,3 +682,757 @@ html.jarvis .focus-task-card {
   border: 1px solid rgba(0, 212, 255, 0.28);
   box-shadow: 0 0 22px rgba(0, 212, 255, 0.08), inset 0 1px 0 rgba(0, 212, 255, 0.1);
 }
+
+/* =========================================================
+   V2.3 — POMODORO TIMER
+   ========================================================= */
+
+/* ── Base timer (minimal theme) ──────────────────────────── */
+.pomo-timer {
+  border: 1px solid #27272a;
+  border-radius: 10px;
+  background: #18181b;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pomo-phase-label {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #52525b;
+  font-weight: 600;
+}
+
+.pomo-focus-label  { color: #60a5fa; }
+.pomo-break-label  { color: #34d399; }
+.pomo-complete-label { color: #a78bfa; }
+
+.pomo-display {
+  font-size: 32px;
+  font-weight: 700;
+  color: #e4e4e7;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.pomo-compact .pomo-display {
+  font-size: 40px;
+}
+
+.pomo-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pomo-task-hint {
+  font-size: 10px;
+  color: #3f3f46;
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pomo-idle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pomo-duration-input {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pomo-duration-field {
+  width: 48px;
+  background: #09090b;
+  border: 1px solid #27272a;
+  border-radius: 5px;
+  color: #a1a1aa;
+  font-size: 12px;
+  padding: 3px 6px;
+  text-align: center;
+}
+
+.pomo-duration-unit {
+  font-size: 10px;
+  color: #3f3f46;
+}
+
+.pomo-progress-track {
+  height: 3px;
+  background: #27272a;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.pomo-progress-fill {
+  height: 100%;
+  background: #60a5fa;
+  border-radius: 99px;
+  transition: width 1s linear;
+}
+
+/* ── Button variants ──────────────────────────────────────── */
+.pomo-btn-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pomo-btn {
+  font-size: 11px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  letter-spacing: 0.02em;
+}
+
+.pomo-btn-primary {
+  background: #1e3a5f;
+  border-color: #2563eb40;
+  color: #93c5fd;
+}
+
+.pomo-btn-primary:hover {
+  background: #1d4ed8;
+  color: #eff6ff;
+}
+
+.pomo-btn-ghost {
+  background: transparent;
+  border-color: #3f3f46;
+  color: #71717a;
+}
+
+.pomo-btn-ghost:hover {
+  border-color: #52525b;
+  color: #a1a1aa;
+}
+
+.pomo-btn-danger {
+  background: transparent;
+  border-color: #7f1d1d40;
+  color: #f87171;
+}
+
+.pomo-btn-danger:hover {
+  background: #450a0a;
+  border-color: #ef4444;
+}
+
+.pomo-start-btn {
+  width: 100%;
+  text-align: center;
+}
+
+.pomo-other-active {
+  font-size: 10px;
+  color: #71717a;
+  text-align: center;
+}
+
+.pomo-confirm-msg {
+  font-size: 12px;
+  color: #a1a1aa;
+}
+
+/* ── Compact variant (Focus Mode) ────────────────────────── */
+.pomo-compact {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: #3f3f46;
+}
+
+/* ── TaskCard indicator pill ─────────────────────────────── */
+.pomo-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #60a5fa;
+  letter-spacing: 0.06em;
+}
+
+.pomo-indicator-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pomo-dot-active {
+  background: #60a5fa;
+  box-shadow: 0 0 5px #60a5fa80;
+  animation: pomoDotPulse 1.4s ease-in-out infinite;
+}
+
+.pomo-dot-paused {
+  background: #52525b;
+}
+
+@keyframes pomoDotPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.pomo-indicator-text {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── CYBER theme overrides ───────────────────────────────── */
+html.cyber .pomo-timer {
+  background: rgba(8, 8, 32, 0.7);
+  border-color: rgba(0, 229, 255, 0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+html.cyber .pomo-display {
+  color: var(--neon-cyan);
+  text-shadow: 0 0 16px rgba(0, 229, 255, 0.55);
+  font-family: var(--font-orbitron), "Courier New", monospace;
+}
+
+html.cyber .pomo-progress-fill {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+}
+
+html.cyber .pomo-btn-primary {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: rgba(0, 229, 255, 0.4);
+  color: var(--neon-cyan);
+}
+
+html.cyber .pomo-btn-primary:hover {
+  background: rgba(0, 229, 255, 0.2);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+}
+
+html.cyber .pomo-indicator {
+  color: var(--neon-cyan);
+  text-shadow: 0 0 6px rgba(0, 229, 255, 0.5);
+}
+
+html.cyber .pomo-dot-active {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 6px var(--neon-cyan);
+}
+
+/* ── JARVIS theme overrides ──────────────────────────────── */
+html.jarvis .pomo-timer {
+  background: var(--j-panel-bg);
+  border: 1px solid var(--j-panel-border);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+html.jarvis .pomo-display {
+  color: var(--j-cyan);
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+  font-family: var(--font-orbitron), "Courier New", monospace;
+  letter-spacing: 0.08em;
+}
+
+html.jarvis .pomo-compact .pomo-display {
+  text-shadow: 0 0 30px rgba(0, 212, 255, 0.7);
+}
+
+html.jarvis .pomo-progress-track {
+  background: rgba(0, 212, 255, 0.1);
+}
+
+html.jarvis .pomo-progress-fill {
+  background: var(--j-cyan);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.6);
+}
+
+html.jarvis .pomo-btn-primary {
+  background: rgba(0, 212, 255, 0.08);
+  border-color: rgba(0, 212, 255, 0.35);
+  color: var(--j-cyan);
+}
+
+html.jarvis .pomo-btn-primary:hover {
+  background: rgba(0, 212, 255, 0.18);
+  box-shadow: 0 0 14px rgba(0, 212, 255, 0.18);
+}
+
+html.jarvis .pomo-btn-ghost {
+  border-color: rgba(0, 212, 255, 0.12);
+  color: var(--j-text-dim);
+}
+
+html.jarvis .pomo-btn-ghost:hover {
+  border-color: rgba(0, 212, 255, 0.3);
+  color: var(--j-text);
+}
+
+html.jarvis .pomo-phase-label {
+  font-family: var(--font-orbitron), monospace;
+  color: var(--j-text-dim);
+}
+
+html.jarvis .pomo-focus-label  { color: var(--j-cyan); }
+html.jarvis .pomo-break-label  { color: rgba(52, 211, 153, 0.9); }
+html.jarvis .pomo-complete-label { color: rgba(167, 139, 250, 0.9); }
+
+html.jarvis .pomo-indicator {
+  color: var(--j-cyan);
+  text-shadow: 0 0 6px rgba(0, 212, 255, 0.4);
+}
+
+html.jarvis .pomo-dot-active {
+  background: var(--j-cyan);
+  box-shadow: 0 0 6px var(--j-cyan), 0 0 12px rgba(0, 212, 255, 0.4);
+  animation: jarvisStatusPulse 2.2s ease-in-out infinite;
+}
+
+/* =========================================================
+   V2.3 — EXECUTION PLAYBOOK PANEL
+   ========================================================= */
+
+.playbook-panel {
+  border-radius: 12px;
+  border: 1px solid #27272a;
+  background: #18181b;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.playbook-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.playbook-title {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a1a1aa;
+  font-weight: 600;
+}
+
+.playbook-subtitle {
+  font-size: 11px;
+  color: #3f3f46;
+  margin-top: 2px;
+}
+
+.playbook-close {
+  color: #52525b;
+  font-size: 22px;
+  line-height: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.playbook-close:hover { color: #a1a1aa; }
+
+.playbook-section-label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #52525b;
+  margin-bottom: 6px;
+}
+
+.playbook-task-select {
+  display: flex;
+  flex-direction: column;
+}
+
+.playbook-select {
+  background: #09090b;
+  border: 1px solid #27272a;
+  border-radius: 6px;
+  color: #a1a1aa;
+  font-size: 12px;
+  padding: 6px 10px;
+}
+
+.playbook-empty {
+  font-size: 12px;
+  color: #3f3f46;
+}
+
+/* Pomodoro offer banner */
+.playbook-pomo-offer {
+  background: #0c1626;
+  border: 1px solid #1e3a5f40;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.playbook-pomo-offer-text {
+  font-size: 11px;
+  color: #60a5fa;
+  letter-spacing: 0.04em;
+}
+
+/* Techniques list */
+.playbook-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.playbook-item {
+  border: 1px solid #1f1f23;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.playbook-item-open {
+  border-color: #3f3f46;
+}
+
+.playbook-item-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  gap: 8px;
+}
+
+.playbook-item-header:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.playbook-item-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.playbook-item-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #d4d4d8;
+  letter-spacing: 0.01em;
+}
+
+.playbook-item-tagline {
+  font-size: 10px;
+  color: #52525b;
+  letter-spacing: 0.02em;
+}
+
+.playbook-chevron {
+  font-size: 8px;
+  color: #3f3f46;
+  flex-shrink: 0;
+}
+
+.playbook-item-body {
+  padding: 0 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid #1f1f23;
+}
+
+.playbook-item-explanation {
+  font-size: 12px;
+  color: #a1a1aa;
+  line-height: 1.55;
+  margin-top: 8px;
+}
+
+.playbook-when {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.playbook-when-label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #52525b;
+  font-weight: 600;
+}
+
+.playbook-when-text {
+  font-size: 11px;
+  color: #71717a;
+  line-height: 1.5;
+}
+
+.playbook-priority-note {
+  font-size: 10px;
+  color: #71717a;
+}
+
+.playbook-apply-btn {
+  align-self: flex-start;
+  font-size: 11px;
+  padding: 5px 14px;
+  border-radius: 6px;
+  border: 1px solid #3f3f46;
+  background: transparent;
+  color: #a1a1aa;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.playbook-apply-btn:hover:not(:disabled) {
+  border-color: #71717a;
+  color: #e4e4e7;
+}
+
+.playbook-apply-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.playbook-apply-done {
+  border-color: #16a34a40;
+  color: #4ade80;
+  background: rgba(22, 163, 74, 0.08);
+}
+
+/* ── CYBER playbook overrides ────────────────────────────── */
+html.cyber .playbook-panel {
+  background: rgba(6, 6, 24, 0.88);
+  border-color: rgba(0, 229, 255, 0.18);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+html.cyber .playbook-item {
+  border-color: rgba(0, 229, 255, 0.08);
+}
+
+html.cyber .playbook-item-open {
+  border-color: rgba(0, 229, 255, 0.25);
+}
+
+html.cyber .playbook-item-name { color: #e0e0ff; }
+html.cyber .playbook-apply-btn {
+  border-color: rgba(0, 229, 255, 0.3);
+  color: rgba(0, 229, 255, 0.7);
+}
+
+html.cyber .playbook-apply-btn:hover:not(:disabled) {
+  border-color: rgba(0, 229, 255, 0.6);
+  color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.1);
+}
+
+html.cyber .playbook-pomo-offer {
+  background: rgba(0, 50, 100, 0.3);
+  border-color: rgba(0, 229, 255, 0.2);
+}
+
+/* ── JARVIS playbook overrides ───────────────────────────── */
+html.jarvis .playbook-panel {
+  background: var(--j-panel-bg);
+  border-color: var(--j-panel-border);
+  box-shadow: 0 0 24px rgba(0, 212, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+html.jarvis .playbook-title { color: var(--j-cyan); font-family: var(--font-orbitron), monospace; }
+html.jarvis .playbook-item  { border-color: rgba(0, 212, 255, 0.06); }
+html.jarvis .playbook-item-open { border-color: rgba(0, 212, 255, 0.2); }
+html.jarvis .playbook-item-name { color: var(--j-text); }
+html.jarvis .playbook-item-tagline { color: var(--j-text-dim); }
+
+html.jarvis .playbook-apply-btn {
+  border-color: rgba(0, 212, 255, 0.22);
+  color: rgba(0, 212, 255, 0.55);
+}
+
+html.jarvis .playbook-apply-btn:hover:not(:disabled) {
+  border-color: rgba(0, 212, 255, 0.5);
+  color: var(--j-cyan);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.1);
+}
+
+html.jarvis .playbook-pomo-offer {
+  background: rgba(0, 212, 255, 0.04);
+  border-color: rgba(0, 212, 255, 0.15);
+}
+
+html.jarvis .playbook-pomo-offer-text { color: var(--j-cyan); }
+
+/* =========================================================
+   V2.3 — WEEKLY INSIGHT MODAL
+   ========================================================= */
+
+.insight-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.insight-modal {
+  width: 100%;
+  max-width: 480px;
+  border-radius: 14px;
+  background: #18181b;
+  border: 1px solid #27272a;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.insight-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.insight-title {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a1a1aa;
+  font-weight: 600;
+}
+
+.insight-subtitle {
+  font-size: 10px;
+  color: #3f3f46;
+  margin-top: 3px;
+  letter-spacing: 0.06em;
+}
+
+.insight-close {
+  color: #52525b;
+  font-size: 22px;
+  line-height: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.insight-close:hover { color: #a1a1aa; }
+
+.insight-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.insight-stat-cell {
+  background: #09090b;
+  border: 1px solid #1f1f23;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.insight-stat-wide {
+  grid-column: 1 / -1;
+}
+
+.insight-stat-label {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #52525b;
+}
+
+.insight-stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #e4e4e7;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.insight-stat-cell.insight-stat-wide .insight-stat-value {
+  font-size: 13px;
+}
+
+.insight-result {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.insight-result-text {
+  font-size: 13px;
+  color: #d4d4d8;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+/* ── CYBER insight overrides ─────────────────────────────── */
+html.cyber .insight-modal {
+  background: rgba(6, 6, 24, 0.92);
+  border-color: rgba(0, 229, 255, 0.2);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+html.cyber .insight-title { color: var(--neon-cyan); }
+html.cyber .insight-stat-cell {
+  background: rgba(8, 8, 32, 0.7);
+  border-color: rgba(0, 229, 255, 0.1);
+}
+/* ── JARVIS insight overrides ────────────────────────────── */
+html.jarvis .insight-modal {
+  background: rgba(0, 6, 18, 0.96);
+  border-color: var(--j-panel-border);
+  box-shadow: 0 0 40px rgba(0, 212, 255, 0.07);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+}
+
+html.jarvis .insight-title {
+  color: var(--j-cyan);
+  font-family: var(--font-orbitron), monospace;
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.4);
+}
+
+html.jarvis .insight-stat-cell {
+  background: rgba(0, 212, 255, 0.03);
+  border-color: rgba(0, 212, 255, 0.1);
+}
+
+html.jarvis .insight-stat-value { color: var(--j-text); }
+
+html.jarvis .insight-result-text { color: var(--j-text); }

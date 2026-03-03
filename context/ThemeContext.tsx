@@ -25,7 +25,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [focusMode, setFocusMode] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem(THEME_KEY) as Theme | null
+    const saved = localStorage.getItem(THEME_KEY)
     if (saved === "cyber" || saved === "jarvis") {
       setTheme(saved)
     }

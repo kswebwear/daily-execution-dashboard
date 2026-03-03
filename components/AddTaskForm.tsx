@@ -57,6 +57,7 @@ export default function AddTaskForm({ onAdd }: Props) {
         type="text"
         placeholder="Task title"
         value={title}
+        maxLength={200}
         onChange={(e) => setTitle(e.target.value)}
         className="w-full bg-transparent text-zinc-100 placeholder-zinc-600 text-sm outline-none"
       />
@@ -64,6 +65,7 @@ export default function AddTaskForm({ onAdd }: Props) {
         type="text"
         placeholder="Tag (optional)"
         value={tag}
+        maxLength={50}
         onChange={(e) => setTag(e.target.value)}
         className="w-full bg-transparent text-zinc-400 placeholder-zinc-600 text-xs outline-none"
       />

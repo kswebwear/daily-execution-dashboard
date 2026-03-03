@@ -66,12 +66,14 @@ export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive
                 <input
                   autoFocus
                   value={editTitle}
+                  maxLength={200}
                   onChange={(e) => setEditTitle(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
                   className="w-full bg-zinc-800 border border-zinc-600 rounded px-2 py-1 text-zinc-100 text-sm outline-none focus:border-zinc-400"
                 />
                 <input
                   value={editTag}
+                  maxLength={50}
                   onChange={(e) => setEditTag(e.target.value)}
                   placeholder="Tag (optional)"
                   className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-zinc-400 text-xs outline-none focus:border-zinc-500 placeholder-zinc-600"
@@ -177,6 +179,7 @@ export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive
             </label>
             <textarea
               value={noteText}
+              maxLength={2000}
               onChange={(e) => setNoteText(e.target.value)}
               placeholder="Add a note for today..."
               rows={3}

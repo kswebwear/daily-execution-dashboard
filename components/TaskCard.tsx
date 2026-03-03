@@ -6,6 +6,7 @@ import { Task } from "@/lib/types"
 import { today } from "@/lib/carryForward"
 import { useTheme } from "@/context/ThemeContext"
 import { getNeonTagStyle } from "@/lib/theme"
+import { PomodoroIndicator } from "./PomodoroTimer"
 
 type Props = {
   task: Task
@@ -89,6 +90,9 @@ export default function TaskCard({ task, onClick }: Props) {
                     {todayNote.text}
                   </span>
                 )}
+
+                {/* Active Pomodoro indicator */}
+                <PomodoroIndicator taskId={task.id} />
               </div>
             </div>
           </div>

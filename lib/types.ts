@@ -1,3 +1,11 @@
+// V2.3: Pomodoro session log entry
+export type PomodoroSession = {
+  startedAt: string  // ISO timestamp when focus started
+  duration: number   // minutes elapsed (full duration if completed)
+  type: "focus"      // only focus sessions are logged
+  completed: boolean // false if stopped early
+}
+
 export type Task = {
   id: string
   title: string
@@ -18,4 +26,6 @@ export type Task = {
   // V2.2 additions (optional for backward compat)
   priority?: "low" | "medium" | "high"  // default = "medium"
   isRecurringDaily?: boolean             // default = false
+  // V2.3 additions (optional for backward compat)
+  pomodoroSessions?: PomodoroSession[]   // append-only log
 }

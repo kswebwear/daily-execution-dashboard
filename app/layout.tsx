@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Orbitron } from "next/font/google"
 import "./globals.css"
 import { AuthProvider } from "@/context/AuthContext"
 import { ThemeProvider } from "@/context/ThemeContext"
+import { PomodoroProvider } from "@/context/PomodoroContext"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,7 +49,9 @@ export default function RootLayout({
         <div aria-hidden="true" className="jarvis-fx-particles" />
 
         <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <PomodoroProvider>{children}</PomodoroProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

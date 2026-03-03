@@ -7,9 +7,10 @@ import {
   updateDoc,
   deleteDoc,
   writeBatch,
+  arrayUnion,
 } from "firebase/firestore"
 import { db } from "./firebase"
-import { Task } from "./types"
+import { Task, PomodoroSession } from "./types"
 
 function tasksRef(userId: string) {
   return collection(db, `users/${userId}/tasks`)
@@ -44,6 +45,18 @@ export async function updateTask(
 
 export async function permanentDeleteTask(userId: string, taskId: string): Promise<void> {
   await deleteDoc(taskDoc(userId, taskId))
+}
+
+// V2.3: atomic append — never overwrites existing sessions
+export async function appendPomodoroSession(
+  userId: string,
+  taskId: string,
+  session: PomodoroSession
+): Promise<void> {
+  await updateDoc(taskDoc(userId, taskId), {
+    pomodoroSessions: arrayUnion(session),
+    updatedAt: new Date().toISOString(),
+  })
 }
 
 export async function migrateTasks(userId: string, tasks: Task[]): Promise<void> {

@@ -31,6 +31,9 @@ import TaskModal from "./TaskModal"
 import AddTaskForm from "./AddTaskForm"
 import MigrationModal from "./MigrationModal"
 import AnalyticsPanel from "./AnalyticsPanel"
+import PomodoroTimer from "./PomodoroTimer"
+import PlaybookPanel from "./PlaybookPanel"
+import InsightModal from "./InsightModal"
 
 // ── Priority sort weight ──────────────────────────────────────────────────────
 const P_WEIGHT: Record<string, number> = { high: 0, medium: 1, low: 2 }
@@ -92,10 +95,13 @@ function FocusModeView({
   const { theme } = useTheme()
   const isJarvis = theme === "jarvis"
 
+  // The first (highest-priority) task is the focal task for Pomodoro
+  const focalTask = tasks[0] ?? null
+
   return (
     <div className="focus-overlay">
       {/* Exit + title bar */}
-      <div className="relative z-10 w-full max-w-lg mb-8 flex items-center justify-between">
+      <div className="relative z-10 w-full max-w-lg mb-6 flex items-center justify-between">
         <div>
           <p className="text-xs text-zinc-600 uppercase tracking-widest">Focus Mode</p>
           <p className="text-zinc-500 text-sm mt-0.5">{tasks.length} task{tasks.length !== 1 ? "s" : ""} remaining</p>
@@ -107,6 +113,13 @@ function FocusModeView({
           Exit focus
         </button>
       </div>
+
+      {/* Prominent Pomodoro timer when a task exists */}
+      {focalTask && (
+        <div className="relative z-10 w-full max-w-lg mb-6">
+          <PomodoroTimer task={focalTask} compact />
+        </div>
+      )}
 
       {/* Task cards */}
       <div className="relative z-10 w-full max-w-lg space-y-3">
@@ -160,6 +173,8 @@ export default function TaskBoard() {
   const [mounted, setMounted] = useState(false)
   const [showMigration, setShowMigration] = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
+  const [showPlaybook, setShowPlaybook] = useState(false)
+  const [showInsight, setShowInsight] = useState(false)
 
   // Load tasks — Firestore when logged in, localStorage otherwise
   useEffect(() => {
@@ -269,6 +284,40 @@ export default function TaskBoard() {
     persist(updated)
     if (user) updateTask(user.uid, taskId, { archived: true, updatedAt })
     setModalTask(null)
+  }
+
+  function handleApplyTechnique(
+    taskId: string,
+    note: string,
+    priority?: "low" | "medium" | "high"
+  ) {
+    const todayStr = today()
+    const updatedAt = new Date().toISOString()
+    const updated = tasks.map((t) => {
+      if (t.id !== taskId) return t
+      // Append note to today's daily note
+      const existing = t.dailyNotes.findIndex((n) => n.date === todayStr)
+      const notes = [...t.dailyNotes]
+      const newText = existing >= 0
+        ? `${notes[existing].text}\n${note}`
+        : note
+      if (existing >= 0) {
+        notes[existing] = { date: todayStr, text: newText }
+      } else {
+        notes.push({ date: todayStr, text: newText })
+      }
+      const newPriority = priority ?? t.priority
+      return { ...t, dailyNotes: notes, priority: newPriority, updatedAt }
+    })
+    persist(updated)
+    if (user) {
+      const changed = updated.find((t) => t.id === taskId)!
+      updateTask(user.uid, taskId, {
+        dailyNotes: changed.dailyNotes,
+        priority: changed.priority,
+        updatedAt,
+      })
+    }
   }
 
   async function handleMigrate() {
@@ -429,7 +478,7 @@ export default function TaskBoard() {
 
       {/* Controls bar */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={toggleFocusMode}
             className="cyber-outline-btn text-xs text-zinc-600 hover:text-zinc-300 border border-zinc-800 hover:border-zinc-600 px-3 py-1.5 rounded transition-colors"
@@ -437,10 +486,22 @@ export default function TaskBoard() {
             {focusMode ? "Exit focus" : "Focus mode"}
           </button>
           <button
-            onClick={() => setShowAnalytics((v) => !v)}
+            onClick={() => { setShowAnalytics((v) => !v); setShowPlaybook(false) }}
             className="cyber-outline-btn text-xs text-zinc-600 hover:text-zinc-300 border border-zinc-800 hover:border-zinc-600 px-3 py-1.5 rounded transition-colors"
           >
             {showAnalytics ? "Hide analytics" : "Analytics"}
+          </button>
+          <button
+            onClick={() => { setShowPlaybook((v) => !v); setShowAnalytics(false) }}
+            className="cyber-outline-btn text-xs text-zinc-600 hover:text-zinc-300 border border-zinc-800 hover:border-zinc-600 px-3 py-1.5 rounded transition-colors"
+          >
+            {showPlaybook ? "Hide playbook" : "Playbook"}
+          </button>
+          <button
+            onClick={() => setShowInsight(true)}
+            className="cyber-outline-btn text-xs text-zinc-600 hover:text-zinc-300 border border-zinc-800 hover:border-zinc-600 px-3 py-1.5 rounded transition-colors"
+          >
+            Weekly insight
           </button>
         </div>
         <span className="text-xs text-zinc-700 tabular-nums">
@@ -453,6 +514,22 @@ export default function TaskBoard() {
         <div className="mb-8">
           <AnalyticsPanel tasks={tasks} onClose={() => setShowAnalytics(false)} />
         </div>
+      )}
+
+      {/* Playbook panel */}
+      {showPlaybook && (
+        <div className="mb-8">
+          <PlaybookPanel
+            pendingTasks={pendingTasks}
+            onClose={() => setShowPlaybook(false)}
+            onApplyTechnique={handleApplyTechnique}
+          />
+        </div>
+      )}
+
+      {/* Weekly Insight modal */}
+      {showInsight && (
+        <InsightModal tasks={tasks} onClose={() => setShowInsight(false)} />
       )}
 
       <DndContext

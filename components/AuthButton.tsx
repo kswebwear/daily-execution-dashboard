@@ -18,8 +18,7 @@ export default function AuthButton() {
       } else if (code === "auth/popup-closed-by-user") {
         setError(null) // user dismissed, no message needed
       } else {
-        setError("Sign-in failed. Check console for details.")
-        console.error("[AuthButton] sign-in error:", err)
+        setError("Sign-in failed. Please try again.")
       }
     }
   }
