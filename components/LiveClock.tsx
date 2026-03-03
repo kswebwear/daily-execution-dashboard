@@ -42,8 +42,8 @@ export default function LiveClock() {
 
   if (theme === "jarvis") {
     return (
-      <span className="live-clock flex flex-col items-end gap-0.5">
-        <span className="font-mono tabular-nums text-xs">
+      <span className="live-clock flex flex-col items-end gap-0.5" style={{ minWidth: "8rem" }}>
+        <span className="font-mono tabular-nums text-xs" style={{ fontVariantNumeric: "tabular-nums" }}>
           {time}
           <span className="live-clock-ms">.{ms}</span>
         </span>
@@ -53,7 +53,10 @@ export default function LiveClock() {
   }
 
   return (
-    <span className="live-clock font-mono tabular-nums text-xs text-zinc-700 transition-colors">
+    <span
+      className="live-clock font-mono tabular-nums text-xs text-zinc-700 transition-colors"
+      style={{ display: "inline-block", minWidth: "4.5rem", textAlign: "right" }}
+    >
       {time}
     </span>
   )
