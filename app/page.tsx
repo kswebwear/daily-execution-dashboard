@@ -29,15 +29,17 @@ export default function Home() {
               Daily Execution
             </h1>
           </div>
-          <div className="flex items-center gap-3 pt-1 flex-wrap justify-end">
-            <LiveClock />
-            <Link
-              href="/archive"
-              className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
-            >
-              Archive
-            </Link>
-            <ThemeToggle />
+          <div className="flex flex-col items-end gap-2 pt-1">
+            <div className="flex items-center gap-3">
+              <LiveClock />
+              <Link
+                href="/archive"
+                className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+              >
+                Archive
+              </Link>
+              <ThemeToggle />
+            </div>
             <AuthButton />
           </div>
         </header>
