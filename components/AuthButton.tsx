@@ -40,8 +40,9 @@ export default function AuthButton() {
   }
 
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-xs text-zinc-600 truncate max-w-[160px]">{user.email}</span>
+    <div className="flex items-center gap-2 md:gap-3">
+      {/* Email: desktop only — too wide for mobile header */}
+      <span className="hidden md:block text-xs text-zinc-600 truncate max-w-[160px]">{user.email}</span>
       <button
         onClick={signOutUser}
         className="text-xs text-zinc-500 hover:text-zinc-300 border border-zinc-700 hover:border-zinc-500 px-3 py-1.5 rounded transition-colors"
