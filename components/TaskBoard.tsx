@@ -541,7 +541,12 @@ export default function TaskBoard() {
   if (!mounted) return null
 
   const activeTasks = tasks.filter((t) => !(t.archived ?? false))
-  const pendingTasks = sortByPriority(activeTasks.filter((t) => t.status === "pending"))
+  // Only show pending tasks whose createdAt is today or earlier.
+  // Recurring instances get createdAt: tomorrow() so they stay hidden until the next day.
+  const todayStr = today()
+  const pendingTasks = sortByPriority(
+    activeTasks.filter((t) => t.status === "pending" && t.createdAt <= todayStr)
+  )
   const completedTasks = activeTasks.filter((t) => t.status === "completed")
 
   return (
