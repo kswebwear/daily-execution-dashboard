@@ -255,9 +255,18 @@ export default function TaskBoard() {
     return () => unsub()
   }, [user])
 
+  // On mobile: effectively disable both sensors — tap-to-complete and swipe
+  // gestures handle all interactions. This prevents iOS PointerSensor from
+  // treating scroll as a drag and distorting the card list.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } })
+    useSensor(PointerSensor, {
+      activationConstraint: isMobile ? { distance: 999999 } : { distance: 8 },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: isMobile
+        ? { delay: 999999, tolerance: 0 }
+        : { delay: 200, tolerance: 8 },
+    })
   )
 
   function persist(updated: Task[]) {
