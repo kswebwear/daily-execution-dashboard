@@ -187,9 +187,6 @@ function FocusModeView({
         )}
       </div>
 
-      <p className="relative z-10 mt-10 text-xs text-zinc-700 tracking-widest uppercase">
-        ESC to exit
-      </p>
     </div>
   )
 }

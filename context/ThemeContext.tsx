@@ -54,15 +54,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
-  // ESC exits focus mode
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape" && focusMode) toggleFocusMode()
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [focusMode, toggleFocusMode])
-
   return (
     <ThemeContext.Provider value={{ theme, cycleTheme, focusMode, toggleFocusMode }}>
       {children}
