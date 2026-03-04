@@ -30,8 +30,8 @@ export default function TaskColumn({ id, label, tasks, onTaskClick, footer }: Pr
       <div
         ref={setNodeRef}
         data-over={isOver ? "true" : "false"}
-        className={`task-drop-zone flex flex-col gap-2 min-h-[120px] rounded-xl p-2 transition-colors ${
-          isOver ? "bg-zinc-800/50" : "bg-transparent"
+        className={`task-drop-zone flex flex-col gap-2 min-h-[200px] rounded-xl p-2 pb-8 transition-all duration-150 ${
+          isOver ? "bg-zinc-800/60 ring-1 ring-zinc-600" : "bg-transparent"
         }`}
       >
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>

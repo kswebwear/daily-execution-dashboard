@@ -100,7 +100,8 @@ html.cyber .task-column-header {
 
 /* --- Drop zone hover state --- */
 html.cyber .task-drop-zone[data-over="true"] {
-  background: rgba(0, 229, 255, 0.04);
+  background: rgba(0, 229, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(0, 229, 255, 0.3), 0 0 16px rgba(0, 229, 255, 0.08);
 }
 
 /* --- Empty column placeholder --- */
@@ -527,7 +528,8 @@ html.jarvis .task-column-header {
 
 /* --- Drop zone hover --- */
 html.jarvis .task-drop-zone[data-over="true"] {
-  background: rgba(0, 212, 255, 0.04);
+  background: rgba(0, 212, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(0, 212, 255, 0.3), 0 0 20px rgba(0, 212, 255, 0.1);
 }
 
 /* --- Empty placeholder --- */
@@ -681,6 +683,38 @@ html.jarvis .focus-task-card {
   background: rgba(0, 8, 22, 0.92);
   border: 1px solid rgba(0, 212, 255, 0.28);
   box-shadow: 0 0 22px rgba(0, 212, 255, 0.08), inset 0 1px 0 rgba(0, 212, 255, 0.1);
+}
+
+/* Focus Mode — Complete Task button */
+.focus-complete-btn {
+  background: rgba(39, 174, 96, 0.12);
+  border: 1px solid rgba(39, 174, 96, 0.35);
+  color: rgba(134, 239, 172, 0.9);
+}
+.focus-complete-btn:hover {
+  background: rgba(39, 174, 96, 0.22);
+  border-color: rgba(39, 174, 96, 0.6);
+  color: rgb(134, 239, 172);
+}
+html.cyber .focus-complete-btn {
+  border-color: rgba(0, 229, 255, 0.35);
+  color: var(--neon-cyan);
+  background: rgba(0, 229, 255, 0.06);
+}
+html.cyber .focus-complete-btn:hover {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: rgba(0, 229, 255, 0.6);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+}
+html.jarvis .focus-complete-btn {
+  border-color: rgba(0, 212, 255, 0.35);
+  color: rgba(0, 212, 255, 0.9);
+  background: rgba(0, 212, 255, 0.06);
+}
+html.jarvis .focus-complete-btn:hover {
+  background: rgba(0, 212, 255, 0.12);
+  border-color: rgba(0, 212, 255, 0.6);
+  box-shadow: 0 0 16px rgba(0, 212, 255, 0.25);
 }
 
 /* =========================================================

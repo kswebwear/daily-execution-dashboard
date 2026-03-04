@@ -34,6 +34,7 @@ import AnalyticsPanel from "./AnalyticsPanel"
 import PomodoroTimer from "./PomodoroTimer"
 import PlaybookPanel from "./PlaybookPanel"
 import InsightModal from "./InsightModal"
+import { usePomodoro } from "@/context/PomodoroContext"
 
 // ── Priority sort weight ──────────────────────────────────────────────────────
 const P_WEIGHT: Record<string, number> = { high: 0, medium: 1, low: 2 }
@@ -87,16 +88,30 @@ function FocusModeView({
   tasks,
   onExit,
   onTaskClick,
+  onComplete,
 }: {
   tasks: Task[]
   onExit: () => void
   onTaskClick: (t: Task) => void
+  onComplete: (taskId: string) => void
 }) {
   const { theme } = useTheme()
   const isJarvis = theme === "jarvis"
 
   // The first (highest-priority) task is the focal task for Pomodoro
   const focalTask = tasks[0] ?? null
+
+  // Shift+Enter → complete focal task
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.shiftKey && e.key === "Enter" && focalTask) {
+        e.preventDefault()
+        onComplete(focalTask.id)
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [focalTask, onComplete])
 
   return (
     <div className="focus-overlay">
@@ -116,8 +131,21 @@ function FocusModeView({
 
       {/* Prominent Pomodoro timer when a task exists */}
       {focalTask && (
-        <div className="relative z-10 w-full max-w-lg mb-6">
+        <div className="relative z-10 w-full max-w-lg mb-4">
           <PomodoroTimer task={focalTask} compact />
+        </div>
+      )}
+
+      {/* Complete Task button */}
+      {focalTask && (
+        <div className="relative z-10 w-full max-w-lg mb-6">
+          <button
+            onClick={() => onComplete(focalTask.id)}
+            className="focus-complete-btn w-full py-3 rounded-xl text-sm font-medium transition-colors"
+          >
+            Complete Task
+            <span className="ml-2 text-xs opacity-40">Shift+Enter</span>
+          </button>
         </div>
       )}
 
@@ -167,6 +195,7 @@ function FocusModeView({
 export default function TaskBoard() {
   const { user } = useAuth()
   const { focusMode, toggleFocusMode } = useTheme()
+  const { state: pomoState, stop: pomoStop } = usePomodoro()
   const [tasks, setTasks] = useState<Task[]>([])
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [modalTask, setModalTask] = useState<Task | null>(null)
@@ -334,6 +363,38 @@ export default function TaskBoard() {
     setShowMigration(false)
   }
 
+  // ── Focus Mode task completion ────────────────────────────────────────────
+  function handleCompleteTask(taskId: string) {
+    const todayStr = today()
+    const updatedAt = new Date().toISOString()
+    let updated = tasks.map((t) => {
+      if (t.id !== taskId) return t
+      return {
+        ...t,
+        status: "completed" as const,
+        completionHistory: [...t.completionHistory, { date: todayStr }],
+        updatedAt,
+      }
+    })
+    updated = maybeAddRecurring(taskId, updated)
+    persist(updated)
+    if (user) {
+      const changed = updated.find((t) => t.id === taskId)!
+      updateTask(user.uid, taskId, {
+        status: changed.status,
+        completionHistory: changed.completionHistory,
+        updatedAt,
+      })
+    }
+    // Stop Pomodoro if it's running for this task
+    if (pomoState.taskId === taskId && pomoState.phase !== "idle") {
+      pomoStop()
+    }
+    // Exit focus mode if no pending tasks remain
+    const remaining = updated.filter((t) => t.status === "pending" && !(t.archived ?? false))
+    if (remaining.length === 0) toggleFocusMode()
+  }
+
   // ── Recurring helper — called after a task is confirmed completed ──────────
   function maybeAddRecurring(completedId: string, currentTasks: Task[]): Task[] {
     const completedTask = currentTasks.find((t) => t.id === completedId)
@@ -473,6 +534,7 @@ export default function TaskBoard() {
           tasks={pendingTasks.slice(0, 3)}
           onExit={toggleFocusMode}
           onTaskClick={setModalTask}
+          onComplete={handleCompleteTask}
         />
       )}
 
