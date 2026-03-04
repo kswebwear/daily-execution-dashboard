@@ -10,11 +10,24 @@ type Props = {
   label: string
   tasks: Task[]
   onTaskClick: (task: Task) => void
+  onComplete?: (taskId: string) => void
+  onArchive?: (taskId: string) => void
+  onDelete?: (taskId: string) => void
   footer?: React.ReactNode
   isDropTarget?: boolean
 }
 
-export default function TaskColumn({ id, label, tasks, onTaskClick, footer, isDropTarget }: Props) {
+export default function TaskColumn({
+  id,
+  label,
+  tasks,
+  onTaskClick,
+  onComplete,
+  onArchive,
+  onDelete,
+  footer,
+  isDropTarget,
+}: Props) {
   const { setNodeRef, isOver } = useDroppable({ id })
   const highlighted = isOver || (isDropTarget ?? false)
 
@@ -38,7 +51,14 @@ export default function TaskColumn({ id, label, tasks, onTaskClick, footer, isDr
       >
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onClick={onTaskClick} />
+            <TaskCard
+              key={task.id}
+              task={task}
+              onClick={onTaskClick}
+              onComplete={onComplete}
+              onArchive={onArchive}
+              onDelete={onDelete}
+            />
           ))}
         </SortableContext>
 

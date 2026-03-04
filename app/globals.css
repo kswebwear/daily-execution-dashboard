@@ -1471,3 +1471,332 @@ html.jarvis .insight-stat-cell {
 html.jarvis .insight-stat-value { color: var(--j-text); }
 
 html.jarvis .insight-result-text { color: var(--j-text); }
+
+/* =========================================================
+   V2.4 — MOBILE NATIVE UX LAYER
+   All mobile rules scoped to @media (max-width: 767px)
+   except fixed-position elements which need global scope.
+   ========================================================= */
+
+/* ── Task card wrapper (swipe + completion animation host) ── */
+.task-card-wrapper {
+  position: relative;
+}
+
+/* ── Completion animation: slide-fade ── */
+@keyframes taskComplete {
+  0%   { opacity: 1; transform: translateX(0) scale(1); }
+  60%  { opacity: 0; transform: translateX(28px) scale(0.97); }
+  100% { opacity: 0; transform: translateX(28px) scale(0.97); }
+}
+
+.task-completing {
+  animation: taskComplete 0.28s ease forwards;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* ── Mobile completion checkmark button ── */
+.mobile-complete-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid #3f3f46;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.mobile-complete-btn:active {
+  background: rgba(74, 222, 128, 0.15);
+  border-color: #4ade80;
+}
+
+.mobile-complete-icon {
+  font-size: 12px;
+  color: #52525b;
+  line-height: 1;
+}
+
+@media (max-width: 767px) {
+  .mobile-complete-btn {
+    display: flex;
+  }
+}
+
+/* ── Menu button: hover on desktop, always-on mobile ── */
+@media (max-width: 767px) {
+  .task-card-menu-btn {
+    opacity: 1 !important;
+  }
+}
+
+/* ── Swipe quick actions strip ── */
+.task-quick-actions {
+  display: flex;
+  gap: 6px;
+  padding: 8px 4px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.task-quick-btn {
+  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #3f3f46;
+  background: #18181b;
+  color: #a1a1aa;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.12s ease;
+  min-height: 36px;
+}
+
+.task-quick-btn:active {
+  opacity: 0.75;
+}
+
+.task-quick-edit   { border-color: #3f3f46; color: #a1a1aa; }
+.task-quick-archive { border-color: #ca8a04; color: #ca8a04; }
+.task-quick-delete  { border-color: #ef4444; color: #ef4444; }
+.task-quick-cancel  { border-color: #27272a; color: #52525b; }
+
+/* ── Bottom navigation bar ── */
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    background: rgba(17, 17, 17, 0.96);
+    border-top: 1px solid #27272a;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+.mobile-nav-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 8px 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s ease;
+}
+
+.mobile-nav-label {
+  font-size: 11px;
+  color: #52525b;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.mobile-nav-tab-active .mobile-nav-label {
+  color: #d4d4d8;
+}
+
+.mobile-nav-tab-active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 2px;
+  background: #60a5fa;
+  border-radius: 0 0 2px 2px;
+}
+
+.mobile-nav-badge {
+  font-size: 9px;
+  font-weight: 600;
+  color: #52525b;
+  background: #27272a;
+  border-radius: 8px;
+  padding: 1px 5px;
+  line-height: 1.4;
+}
+
+.mobile-nav-tab-active .mobile-nav-badge {
+  background: #1e3a5f;
+  color: #60a5fa;
+}
+
+/* ── Floating Action Button ── */
+.mobile-fab {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .mobile-fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 16px);
+    right: 20px;
+    z-index: 41;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 300;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.45);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    line-height: 1;
+  }
+
+  .mobile-fab:active {
+    transform: scale(0.93);
+    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
+  }
+}
+
+/* ── Mobile Add Task modal (FAB sheet) ── */
+.mobile-add-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.mobile-add-sheet {
+  width: 100%;
+  max-width: 100%;
+  background: #18181b;
+  border-top: 1px solid #27272a;
+  border-radius: 16px 16px 0 0;
+  padding: 20px 16px calc(env(safe-area-inset-bottom, 0px) + 20px);
+}
+
+/* ── Mobile tab content ── */
+.mobile-tab-content {
+  min-height: 60vh;
+}
+
+/* ── Hide focus mode's Shift+Enter hint on mobile ── */
+@media (max-width: 767px) {
+  .focus-overlay {
+    padding-bottom: 20px;
+  }
+}
+
+/* ── Focus mode hides mobile nav + FAB ── */
+html.focus-mode .mobile-bottom-nav,
+html.focus-mode .mobile-fab {
+  display: none !important;
+}
+
+/* ── CYBER theme overrides for V2.4 ── */
+html.cyber .mobile-bottom-nav {
+  background: rgba(5, 5, 20, 0.96);
+  border-top-color: rgba(0, 229, 255, 0.15);
+}
+
+html.cyber .mobile-nav-tab-active .mobile-nav-label {
+  color: var(--neon-cyan);
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+}
+
+html.cyber .mobile-nav-tab-active::before {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 6px var(--neon-cyan);
+}
+
+html.cyber .mobile-fab {
+  background: rgba(0, 229, 255, 0.15);
+  border: 1px solid rgba(0, 229, 255, 0.5);
+  color: var(--neon-cyan);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+}
+
+html.cyber .mobile-add-sheet {
+  background: rgba(6, 6, 24, 0.96);
+  border-top-color: rgba(0, 229, 255, 0.2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+html.cyber .task-quick-btn {
+  background: rgba(8, 8, 32, 0.8);
+}
+
+html.cyber .mobile-complete-btn {
+  border-color: rgba(0, 229, 255, 0.3);
+}
+
+html.cyber .mobile-complete-btn:active {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: var(--neon-cyan);
+}
+
+html.cyber .mobile-complete-icon {
+  color: rgba(0, 229, 255, 0.5);
+}
+
+/* ── JARVIS theme overrides for V2.4 ── */
+html.jarvis .mobile-bottom-nav {
+  background: rgba(0, 6, 18, 0.97);
+  border-top-color: var(--j-panel-border);
+}
+
+html.jarvis .mobile-nav-tab-active .mobile-nav-label {
+  color: var(--j-cyan);
+}
+
+html.jarvis .mobile-nav-tab-active::before {
+  background: var(--j-cyan);
+  box-shadow: 0 0 6px var(--j-cyan);
+}
+
+html.jarvis .mobile-fab {
+  background: rgba(0, 212, 255, 0.12);
+  border: 1px solid rgba(0, 212, 255, 0.45);
+  color: var(--j-cyan);
+  box-shadow: 0 0 24px rgba(0, 212, 255, 0.18);
+  font-family: var(--font-orbitron), monospace;
+}
+
+html.jarvis .mobile-add-sheet {
+  background: var(--j-panel-bg);
+  border-top-color: var(--j-panel-border);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+html.jarvis .mobile-complete-btn {
+  border-color: rgba(0, 212, 255, 0.25);
+}
+
+html.jarvis .mobile-complete-btn:active {
+  background: rgba(0, 212, 255, 0.08);
+  border-color: var(--j-cyan);
+}
+
+html.jarvis .mobile-complete-icon {
+  color: var(--j-text-dim);
+}

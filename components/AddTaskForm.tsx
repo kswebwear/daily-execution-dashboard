@@ -6,14 +6,16 @@ import { today } from "@/lib/carryForward"
 
 type Props = {
   onAdd: (task: Task) => void
+  defaultOpen?: boolean
+  onCancel?: () => void
 }
 
-export default function AddTaskForm({ onAdd }: Props) {
+export default function AddTaskForm({ onAdd, defaultOpen, onCancel }: Props) {
   const [title, setTitle] = useState("")
   const [tag, setTag] = useState("")
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium")
   const [isRecurringDaily, setIsRecurringDaily] = useState(false)
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(defaultOpen ?? false)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -98,7 +100,7 @@ export default function AddTaskForm({ onAdd }: Props) {
         </button>
         <button
           type="button"
-          onClick={() => setOpen(false)}
+          onClick={() => { setOpen(false); onCancel?.() }}
           className="px-3 py-1.5 text-zinc-500 hover:text-zinc-300 text-xs transition-colors"
         >
           Cancel

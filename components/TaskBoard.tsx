@@ -26,6 +26,7 @@ import {
   permanentDeleteTask as _permanentDeleteTask,
   migrateTasks,
 } from "@/lib/firestore"
+import { useIsMobile } from "@/lib/useIsMobile"
 import TaskColumn from "./TaskColumn"
 import TaskModal from "./TaskModal"
 import AddTaskForm from "./AddTaskForm"
@@ -34,6 +35,7 @@ import AnalyticsPanel from "./AnalyticsPanel"
 import PomodoroTimer from "./PomodoroTimer"
 import PlaybookPanel from "./PlaybookPanel"
 import InsightModal from "./InsightModal"
+import MobileBottomNav, { MobileTab } from "./MobileBottomNav"
 import { usePomodoro } from "@/context/PomodoroContext"
 
 // ── Priority sort weight ──────────────────────────────────────────────────────
@@ -57,7 +59,6 @@ function tomorrow(): string {
 
 // ── Recurring instance factory ────────────────────────────────────────────────
 function createRecurringInstance(source: Task, allTasks: Task[]): Task | null {
-  // Only create if no pending recurring copy already exists
   const hasPending = allTasks.some(
     (t) =>
       t.id !== source.id &&
@@ -98,10 +99,8 @@ function FocusModeView({
   const { theme } = useTheme()
   const isJarvis = theme === "jarvis"
 
-  // The first (highest-priority) task is the focal task for Pomodoro
   const focalTask = tasks[0] ?? null
 
-  // Shift+Enter → complete focal task
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.shiftKey && e.key === "Enter" && focalTask) {
@@ -144,7 +143,7 @@ function FocusModeView({
             className="focus-complete-btn w-full py-3 rounded-xl text-sm font-medium transition-colors"
           >
             Complete Task
-            <span className="ml-2 text-xs opacity-40">Shift+Enter</span>
+            <span className="ml-2 text-xs opacity-40 hidden sm:inline">Shift+Enter</span>
           </button>
           <p className="mt-1.5 text-center text-xs text-zinc-600">
             Marks <span className="text-zinc-500 font-medium">&ldquo;{focalTask.title}&rdquo;</span> as done
@@ -186,7 +185,6 @@ function FocusModeView({
           ))
         )}
       </div>
-
     </div>
   )
 }
@@ -196,6 +194,7 @@ export default function TaskBoard() {
   const { user } = useAuth()
   const { focusMode, toggleFocusMode } = useTheme()
   const { state: pomoState, stop: pomoStop } = usePomodoro()
+  const isMobile = useIsMobile()
   const [tasks, setTasks] = useState<Task[]>([])
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [dragOverColumn, setDragOverColumn] = useState<"pending" | "completed" | null>(null)
@@ -205,6 +204,8 @@ export default function TaskBoard() {
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [showPlaybook, setShowPlaybook] = useState(false)
   const [showInsight, setShowInsight] = useState(false)
+  const [mobileTab, setMobileTab] = useState<MobileTab>("pending")
+  const [showMobileAdd, setShowMobileAdd] = useState(false)
 
   // Load tasks — Firestore when logged in, localStorage otherwise
   useEffect(() => {
@@ -256,7 +257,7 @@ export default function TaskBoard() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } })
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } })
   )
 
   function persist(updated: Task[]) {
@@ -316,6 +317,12 @@ export default function TaskBoard() {
     setModalTask(null)
   }
 
+  function handleDelete(taskId: string) {
+    const updated = tasks.filter((t) => t.id !== taskId)
+    persist(updated)
+    if (user) _permanentDeleteTask(user.uid, taskId)
+  }
+
   function handleApplyTechnique(
     taskId: string,
     note: string,
@@ -325,7 +332,6 @@ export default function TaskBoard() {
     const updatedAt = new Date().toISOString()
     const updated = tasks.map((t) => {
       if (t.id !== taskId) return t
-      // Append note to today's daily note
       const existing = t.dailyNotes.findIndex((n) => n.date === todayStr)
       const notes = [...t.dailyNotes]
       const newText = existing >= 0
@@ -364,7 +370,6 @@ export default function TaskBoard() {
     setShowMigration(false)
   }
 
-  // ── Focus Mode task completion ────────────────────────────────────────────
   function handleCompleteTask(taskId: string) {
     const todayStr = today()
     const updatedAt = new Date().toISOString()
@@ -387,16 +392,13 @@ export default function TaskBoard() {
         updatedAt,
       })
     }
-    // Stop Pomodoro if it's running for this task
     if (pomoState.taskId === taskId && pomoState.phase !== "idle") {
       pomoStop()
     }
-    // Exit focus mode if no pending tasks remain
     const remaining = updated.filter((t) => t.status === "pending" && !(t.archived ?? false))
-    if (remaining.length === 0) toggleFocusMode()
+    if (remaining.length === 0 && focusMode) toggleFocusMode()
   }
 
-  // ── Recurring helper — called after a task is confirmed completed ──────────
   function maybeAddRecurring(completedId: string, currentTasks: Task[]): Task[] {
     const completedTask = currentTasks.find((t) => t.id === completedId)
     if (!completedTask?.isRecurringDaily) return currentTasks
@@ -422,7 +424,6 @@ export default function TaskBoard() {
     const activeId = active.id as string
     const overId = over.id as string
 
-    // Track which column is currently under the drag pointer
     if (overId === "pending" || overId === "completed") {
       setDragOverColumn(overId)
     } else {
@@ -478,7 +479,6 @@ export default function TaskBoard() {
     const overTask = tasks.find((t) => t.id === overId)
     if (!activeTaskItem) return
 
-    // Same-column reorder
     if (overTask && activeTaskItem.status === overTask.status) {
       const sameColumn = tasks.filter((t) => t.status === activeTaskItem.status)
       const otherColumn = tasks.filter((t) => t.status !== activeTaskItem.status)
@@ -496,7 +496,6 @@ export default function TaskBoard() {
       return
     }
 
-    // Cross-column drop — handle if dragOver didn't already
     const isOverColumn = overId === "pending" || overId === "completed"
     if (isOverColumn && activeTaskItem.status !== overId) {
       const todayStr = today()
@@ -552,8 +551,8 @@ export default function TaskBoard() {
         />
       )}
 
-      {/* Controls bar */}
-      <div className="flex items-center justify-between mb-6">
+      {/* ── Desktop controls bar (hidden on mobile) ── */}
+      <div className="hidden md:flex items-center justify-between mb-6">
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={toggleFocusMode}
@@ -585,16 +584,37 @@ export default function TaskBoard() {
         </span>
       </div>
 
-      {/* Analytics panel */}
+      {/* ── Mobile controls bar (hidden on desktop) ── */}
+      <div className="flex md:hidden items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleFocusMode}
+            className="cyber-outline-btn text-xs text-zinc-600 hover:text-zinc-300 border border-zinc-800 hover:border-zinc-600 px-3 py-1.5 rounded transition-colors"
+          >
+            Focus
+          </button>
+          <button
+            onClick={() => setShowInsight(true)}
+            className="cyber-outline-btn text-xs text-zinc-600 hover:text-zinc-300 border border-zinc-800 hover:border-zinc-600 px-3 py-1.5 rounded transition-colors"
+          >
+            Insight
+          </button>
+        </div>
+        <span className="text-xs text-zinc-700 tabular-nums">
+          {pendingTasks.length} pending
+        </span>
+      </div>
+
+      {/* Analytics panel — desktop only */}
       {showAnalytics && (
-        <div className="mb-8">
+        <div className="mb-8 hidden md:block">
           <AnalyticsPanel tasks={tasks} onClose={() => setShowAnalytics(false)} />
         </div>
       )}
 
-      {/* Playbook panel */}
+      {/* Playbook panel — desktop only */}
       {showPlaybook && (
-        <div className="mb-8">
+        <div className="mb-8 hidden md:block">
           <PlaybookPanel
             pendingTasks={pendingTasks}
             onClose={() => setShowPlaybook(false)}
@@ -608,6 +628,25 @@ export default function TaskBoard() {
         <InsightModal tasks={tasks} onClose={() => setShowInsight(false)} />
       )}
 
+      {/* ── Mobile Add Task overlay (FAB triggered) ── */}
+      {showMobileAdd && (
+        <div
+          className="mobile-add-backdrop"
+          onClick={() => setShowMobileAdd(false)}
+        >
+          <div
+            className="mobile-add-sheet"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <AddTaskForm
+              defaultOpen
+              onAdd={(task) => { handleAdd(task); setShowMobileAdd(false) }}
+              onCancel={() => setShowMobileAdd(false)}
+            />
+          </div>
+        </div>
+      )}
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -615,23 +654,64 @@ export default function TaskBoard() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <TaskColumn
-            id="pending"
-            label="Pending"
-            tasks={pendingTasks}
-            onTaskClick={setModalTask}
-            footer={<AddTaskForm onAdd={handleAdd} />}
-            isDropTarget={dragOverColumn === "pending"}
-          />
-          <TaskColumn
-            id="completed"
-            label="Completed today"
-            tasks={completedTasks}
-            onTaskClick={setModalTask}
-            isDropTarget={dragOverColumn === "completed"}
-          />
-        </div>
+        {/* ── Desktop: two-column Kanban ── */}
+        {!isMobile && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <TaskColumn
+              id="pending"
+              label="Pending"
+              tasks={pendingTasks}
+              onTaskClick={setModalTask}
+              onComplete={handleCompleteTask}
+              onArchive={handleArchive}
+              onDelete={handleDelete}
+              footer={<AddTaskForm onAdd={handleAdd} />}
+              isDropTarget={dragOverColumn === "pending"}
+            />
+            <TaskColumn
+              id="completed"
+              label="Completed today"
+              tasks={completedTasks}
+              onTaskClick={setModalTask}
+              isDropTarget={dragOverColumn === "completed"}
+            />
+          </div>
+        )}
+
+        {/* ── Mobile: tab-based single-column view ── */}
+        {isMobile && (
+          <div className="mobile-tab-content pb-20">
+            {mobileTab === "pending" && (
+              <TaskColumn
+                id="pending"
+                label="Pending"
+                tasks={pendingTasks}
+                onTaskClick={setModalTask}
+                onComplete={handleCompleteTask}
+                onArchive={handleArchive}
+                onDelete={handleDelete}
+                isDropTarget={dragOverColumn === "pending"}
+              />
+            )}
+            {mobileTab === "completed" && (
+              <TaskColumn
+                id="completed"
+                label="Completed today"
+                tasks={completedTasks}
+                onTaskClick={setModalTask}
+                isDropTarget={dragOverColumn === "completed"}
+              />
+            )}
+            {mobileTab === "insights" && (
+              <div className="mt-2">
+                <AnalyticsPanel
+                  tasks={tasks}
+                  onClose={() => setMobileTab("pending")}
+                />
+              </div>
+            )}
+          </div>
+        )}
 
         <DragOverlay>
           {activeTask ? (
@@ -644,6 +724,27 @@ export default function TaskBoard() {
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      {/* ── Mobile FAB ── */}
+      {isMobile && mobileTab === "pending" && !focusMode && (
+        <button
+          onClick={() => setShowMobileAdd(true)}
+          className="mobile-fab"
+          aria-label="Add task"
+        >
+          +
+        </button>
+      )}
+
+      {/* ── Mobile Bottom Nav ── */}
+      {isMobile && !focusMode && (
+        <MobileBottomNav
+          activeTab={mobileTab}
+          pendingCount={pendingTasks.length}
+          completedCount={completedTasks.length}
+          onTabChange={setMobileTab}
+        />
+      )}
 
       {modalTask && (
         <TaskModal
