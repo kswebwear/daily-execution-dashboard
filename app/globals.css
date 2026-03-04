@@ -657,17 +657,18 @@ html.jarvis ::-webkit-scrollbar-thumb {
 .focus-overlay {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: 100;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.82);
-  padding: 32px 16px;
+  justify-content: flex-start;
+  overflow-y: auto;
+  background: rgba(7, 7, 10, 0.97);
+  padding: 48px 16px 64px;
 }
 
 html.jarvis .focus-overlay {
-  background: rgba(0, 4, 12, 0.88);
+  background: rgba(0, 4, 12, 0.97);
 }
 
 /* Slight vignette behind focus tasks */
