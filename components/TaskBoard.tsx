@@ -198,6 +198,7 @@ export default function TaskBoard() {
   const { state: pomoState, stop: pomoStop } = usePomodoro()
   const [tasks, setTasks] = useState<Task[]>([])
   const [activeTask, setActiveTask] = useState<Task | null>(null)
+  const [dragOverColumn, setDragOverColumn] = useState<"pending" | "completed" | null>(null)
   const [modalTask, setModalTask] = useState<Task | null>(null)
   const [mounted, setMounted] = useState(false)
   const [showMigration, setShowMigration] = useState(false)
@@ -408,14 +409,26 @@ export default function TaskBoard() {
   function handleDragStart(event: DragStartEvent) {
     const task = tasks.find((t) => t.id === event.active.id)
     setActiveTask(task ?? null)
+    setDragOverColumn(null)
   }
 
   function handleDragOver(event: DragOverEvent) {
     const { active, over } = event
-    if (!over) return
+    if (!over) {
+      setDragOverColumn(null)
+      return
+    }
 
     const activeId = active.id as string
     const overId = over.id as string
+
+    // Track which column is currently under the drag pointer
+    if (overId === "pending" || overId === "completed") {
+      setDragOverColumn(overId)
+    } else {
+      const overTask = tasks.find((t) => t.id === overId)
+      if (overTask) setDragOverColumn(overTask.status as "pending" | "completed")
+    }
     const activeTaskItem = tasks.find((t) => t.id === activeId)
     if (!activeTaskItem) return
 
@@ -455,6 +468,7 @@ export default function TaskBoard() {
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     setActiveTask(null)
+    setDragOverColumn(null)
     if (!over) return
 
     const activeId = active.id as string
@@ -608,12 +622,14 @@ export default function TaskBoard() {
             tasks={pendingTasks}
             onTaskClick={setModalTask}
             footer={<AddTaskForm onAdd={handleAdd} />}
+            isDropTarget={dragOverColumn === "pending"}
           />
           <TaskColumn
             id="completed"
             label="Completed today"
             tasks={completedTasks}
             onTaskClick={setModalTask}
+            isDropTarget={dragOverColumn === "completed"}
           />
         </div>
 

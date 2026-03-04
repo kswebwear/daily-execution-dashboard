@@ -11,10 +11,12 @@ type Props = {
   tasks: Task[]
   onTaskClick: (task: Task) => void
   footer?: React.ReactNode
+  isDropTarget?: boolean
 }
 
-export default function TaskColumn({ id, label, tasks, onTaskClick, footer }: Props) {
+export default function TaskColumn({ id, label, tasks, onTaskClick, footer, isDropTarget }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id })
+  const highlighted = isOver || (isDropTarget ?? false)
 
   return (
     <div className="flex flex-col gap-3">
@@ -29,9 +31,9 @@ export default function TaskColumn({ id, label, tasks, onTaskClick, footer }: Pr
       {/* Drop zone */}
       <div
         ref={setNodeRef}
-        data-over={isOver ? "true" : "false"}
+        data-over={highlighted ? "true" : "false"}
         className={`task-drop-zone flex flex-col gap-2 min-h-[200px] rounded-xl p-2 pb-8 transition-all duration-150 ${
-          isOver ? "bg-zinc-800/60 ring-1 ring-zinc-600" : "bg-transparent"
+          highlighted ? "bg-zinc-800/60 ring-1 ring-zinc-600" : "bg-transparent"
         }`}
       >
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
