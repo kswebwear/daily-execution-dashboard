@@ -146,6 +146,9 @@ function FocusModeView({
             Complete Task
             <span className="ml-2 text-xs opacity-40">Shift+Enter</span>
           </button>
+          <p className="mt-1.5 text-center text-xs text-zinc-600">
+            Marks <span className="text-zinc-500 font-medium">&ldquo;{focalTask.title}&rdquo;</span> as done
+          </p>
         </div>
       )}
 
