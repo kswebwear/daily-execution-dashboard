@@ -10,9 +10,10 @@ type DateGroup = { label: string; date: string; entries: HistoryEntry[] }
 const INITIAL_GROUPS = 30
 
 function yesterday(todayStr: string): string {
-  const d = new Date(todayStr + "T00:00:00")
-  d.setDate(d.getDate() - 1)
-  return d.toISOString().slice(0, 10)
+  const [y, m, d] = todayStr.split("-").map(Number)
+  const date = new Date(Date.UTC(y, m - 1, d))
+  date.setUTCDate(date.getUTCDate() - 1)
+  return date.toISOString().slice(0, 10)
 }
 
 function buildDateGroups(tasks: Task[], todayStr: string): DateGroup[] {
