@@ -433,22 +433,24 @@ export default function TaskBoard() {
     const activeId = active.id as string
     const overId = over.id as string
 
+    let targetColumn: "pending" | "completed" | null = null
     if (overId === "pending" || overId === "completed") {
-      setDragOverColumn(overId)
+      targetColumn = overId
     } else {
       const overTask = tasks.find((t) => t.id === overId)
-      if (overTask) setDragOverColumn(overTask.status as "pending" | "completed")
+      if (overTask) targetColumn = overTask.status as "pending" | "completed"
     }
+    setDragOverColumn(targetColumn)
+
     const activeTaskItem = tasks.find((t) => t.id === activeId)
     if (!activeTaskItem) return
 
-    const isOverColumn = overId === "pending" || overId === "completed"
-    if (isOverColumn && activeTaskItem.status !== overId) {
+    if (targetColumn && activeTaskItem.status !== targetColumn) {
       const todayStr = today()
       const updatedAt = new Date().toISOString()
       let updated = tasks.map((t) => {
         if (t.id !== activeId) return t
-        if (overId === "completed") {
+        if (targetColumn === "completed") {
           return {
             ...t,
             status: "completed" as const,
@@ -459,7 +461,7 @@ export default function TaskBoard() {
         return { ...t, status: "pending" as const, updatedAt }
       })
 
-      if (overId === "completed") {
+      if (targetColumn === "completed") {
         updated = maybeAddRecurring(activeId, updated)
       }
 
@@ -504,38 +506,8 @@ export default function TaskBoard() {
       }
       return
     }
-
-    const isOverColumn = overId === "pending" || overId === "completed"
-    if (isOverColumn && activeTaskItem.status !== overId) {
-      const todayStr = today()
-      const updatedAt = new Date().toISOString()
-      let updated = tasks.map((t) => {
-        if (t.id !== activeId) return t
-        if (overId === "completed") {
-          return {
-            ...t,
-            status: "completed" as const,
-            completionHistory: [...t.completionHistory, { date: todayStr }],
-            updatedAt,
-          }
-        }
-        return { ...t, status: "pending" as const, updatedAt }
-      })
-
-      if (overId === "completed") {
-        updated = maybeAddRecurring(activeId, updated)
-      }
-
-      persist(updated)
-      if (user) {
-        const changed = updated.find((t) => t.id === activeId)!
-        updateTask(user.uid, activeId, {
-          status: changed.status,
-          completionHistory: changed.completionHistory,
-          updatedAt,
-        })
-      }
-    }
+    // Cross-column status changes are fully handled in handleDragOver,
+    // so by the time handleDragEnd fires the task is already in the right column.
   }
 
   if (!mounted) return null
@@ -547,7 +519,9 @@ export default function TaskBoard() {
   const pendingTasks = sortByPriority(
     activeTasks.filter((t) => t.status === "pending" && t.createdAt <= todayStr)
   )
-  const completedTasks = activeTasks.filter((t) => t.status === "completed")
+  const completedTasks = activeTasks.filter(
+    (t) => t.status === "completed" && t.completionHistory.some((h) => h.date === todayStr)
+  )
 
   return (
     <>
