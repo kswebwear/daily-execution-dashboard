@@ -228,30 +228,39 @@ Toggleable analytics panel including:
 
 ### Manual Task Ordering
 
-Users can drag pending tasks to set a custom order that persists across reloads and devices.
+Users can drag pending tasks to set a persistent custom order. Until the first drag, tasks sort automatically by priority.
 
 **Schema field:**
 
 ```ts
-orderIndex?: number  // optional; absent tasks sort by createdAt
+orderIndex?: number  // optional; absence = automatic priority sort
 ```
 
-**Pending task sort order:**
+**Two-mode sort for pending tasks:**
 
-1. `orderIndex` ASC (tasks with no orderIndex sort to end)
-2. `createdAt` ASC as tiebreaker
+| Condition | Sort order |
+|-----------|-----------|
+| No pending task has `orderIndex` | priority DESC → createdAt ASC |
+| Any pending task has `orderIndex` | orderIndex ASC → createdAt as tiebreaker |
 
-**Completed tasks:** unaffected; sorted by `completedAt DESC`.
+Check: `hasManualOrder = pending tasks.some(t => t.orderIndex !== undefined)`
 
-**New task creation:** `orderIndex = max(existing orderIndex) + 1` so new tasks append at the bottom.
+Priority order: `high > medium > low`
+
+**Completed tasks:** unaffected; sorted by completion date DESC.
+
+**New task creation:**
+- If `hasManualOrder = false`: no `orderIndex` assigned; task slots into priority sort automatically.
+- If `hasManualOrder = true`: `orderIndex = max(existing orderIndex) + 1`; task appends at the bottom of the manual list.
 
 **Drag reordering:**
-- Assigns sequential `0, 1, 2…` indices to the entire pending list on drop.
+- First drag activates manual ordering for the session.
+- Assigns sequential `0, 1, 2…` indices to the entire pending list after drop.
 - Only tasks whose `orderIndex` value changed are written to Firestore (minimal writes).
-- Desktop: full drag-and-drop via dnd-kit.
-- Mobile: orderIndex persists (tasks appear in correct order via Firestore sync); mobile drag disabled to preserve scroll.
+- Desktop: full drag-and-drop via dnd-kit PointerSensor.
+- Mobile: `orderIndex` persists via Firestore sync (mobile drag disabled to preserve scroll behaviour).
 
-**Backward compatible:** field is optional; existing tasks without `orderIndex` continue working and sort after indexed tasks by `createdAt`.
+**Backward compatible:** field is optional; tasks without `orderIndex` are unaffected until a drag occurs.
 
 ---
 

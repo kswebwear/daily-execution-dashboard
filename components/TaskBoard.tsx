@@ -39,12 +39,25 @@ import HistoryView from "./HistoryView"
 import MobileBottomNav, { MobileTab } from "./MobileBottomNav"
 import { usePomodoro } from "@/context/PomodoroContext"
 
-// ── Pending task sort: orderIndex ASC, fallback to createdAt ──────────────────
+// ── Pending task sort ─────────────────────────────────────────────────────────
+// Default: priority DESC → createdAt ASC
+// Manual override: if ANY pending task has orderIndex, sort all by orderIndex ASC
+const P_WEIGHT: Record<string, number> = { high: 0, medium: 1, low: 2 }
+
 function sortPendingTasks(tasks: Task[]): Task[] {
+  const hasManualOrder = tasks.some((t) => t.orderIndex !== undefined)
+  if (hasManualOrder) {
+    return [...tasks].sort((a, b) => {
+      const ai = a.orderIndex ?? Infinity
+      const bi = b.orderIndex ?? Infinity
+      if (ai !== bi) return ai - bi
+      return a.createdAt.localeCompare(b.createdAt)
+    })
+  }
   return [...tasks].sort((a, b) => {
-    const ai = a.orderIndex ?? Infinity
-    const bi = b.orderIndex ?? Infinity
-    if (ai !== bi) return ai - bi
+    const pa = P_WEIGHT[a.priority ?? "medium"]
+    const pb = P_WEIGHT[b.priority ?? "medium"]
+    if (pa !== pb) return pa - pb
     return a.createdAt.localeCompare(b.createdAt)
   })
 }
@@ -275,15 +288,23 @@ export default function TaskBoard() {
 
   function handleAdd(task: Task) {
     const now = new Date().toISOString()
-    // Assign orderIndex = highest existing + 1 so new tasks appear at the bottom
-    const pendingWithIndex = tasks.filter(
-      (t) => t.status === "pending" && !(t.archived ?? false) && t.orderIndex != null
+    // Only assign orderIndex if manual ordering is already active.
+    // If no pending task has orderIndex yet, let priority sorting handle placement.
+    const pendingActive = tasks.filter(
+      (t) => t.status === "pending" && !(t.archived ?? false)
     )
-    const maxIndex = pendingWithIndex.reduce(
-      (max, t) => Math.max(max, t.orderIndex!),
-      -1
-    )
-    const full: Task = { ...task, archived: false, updatedAt: now, orderIndex: maxIndex + 1 }
+    const hasManualOrder = pendingActive.some((t) => t.orderIndex !== undefined)
+    let orderIndex: number | undefined
+    if (hasManualOrder) {
+      const max = pendingActive.reduce((m, t) => Math.max(m, t.orderIndex ?? -1), -1)
+      orderIndex = max + 1
+    }
+    const full: Task = {
+      ...task,
+      archived: false,
+      updatedAt: now,
+      ...(orderIndex !== undefined ? { orderIndex } : {}),
+    }
     persist([...tasks, full])
     if (user) addTask(user.uid, full)
   }
