@@ -62,13 +62,13 @@ export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive
 
   useEffect(() => { setPortalReady(true) }, [])
 
-  // Lock body scroll while modal is open; reset horizontal drift on close
+  // Lock vertical body scroll while modal is open; reset full scroll on close
   useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = "hidden"
+    const prevY = document.body.style.overflowY
+    document.body.style.overflowY = "hidden"
     return () => {
-      document.body.style.overflow = prev
-      window.scrollTo(0, window.scrollY) // reset any horizontal scroll bleed
+      document.body.style.overflowY = prevY
+      window.scrollTo(0, 0) // reset both axes — prevents iOS horizontal drift
     }
   }, [])
 
@@ -102,7 +102,7 @@ export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive
 
   // ── Mobile fullscreen notes overlay ──────────────────────────────────────
   const MobileNotesOverlay = (
-    <div className="fixed inset-0 z-[60] bg-zinc-950 flex flex-col">
+    <div className="fixed inset-0 z-[60] bg-zinc-950 flex flex-col" style={{ width: "100vw", maxWidth: "100vw", left: 0, top: 0 }}>
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 shrink-0">
         <p className="text-sm font-medium text-zinc-100 truncate flex-1 mr-4">{task.title}</p>
         <button
