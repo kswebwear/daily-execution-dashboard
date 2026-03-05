@@ -23,6 +23,14 @@ html {
   width: 100%;
 }
 
+/* iOS Safari zooms into inputs with font-size < 16px, causing horizontal scroll.
+   Force 16px on mobile so the viewport never auto-zooms on focus. */
+@media (max-width: 767px) {
+  textarea, input[type="text"], input[type="email"], input[type="search"] {
+    font-size: 16px !important;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

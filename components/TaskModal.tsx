@@ -123,7 +123,7 @@ export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive
           onChange={(e) => { setNoteText(e.target.value); resizeNote(mobileNoteRef.current) }}
           placeholder="Add a note for today..."
           className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm text-zinc-200 placeholder-zinc-600 outline-none resize-none focus:border-zinc-500 transition-colors"
-          style={{ minHeight: NOTE_MIN_H, maxHeight: NOTE_MAX_H }}
+          style={{ minHeight: NOTE_MIN_H, maxHeight: NOTE_MAX_H, fontSize: 16 }}
         />
       </div>
 
@@ -289,7 +289,7 @@ export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive
                   onChange={(e) => { setNoteText(e.target.value); resizeNote(noteRef.current) }}
                   placeholder="Add a note for today..."
                   className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm text-zinc-200 placeholder-zinc-600 outline-none resize-none focus:border-zinc-500 transition-colors"
-                  style={{ minHeight: NOTE_MIN_H, maxHeight: NOTE_MAX_H }}
+                  style={{ minHeight: NOTE_MIN_H, maxHeight: NOTE_MAX_H, fontSize: 16 }}
                 />
               )}
 
