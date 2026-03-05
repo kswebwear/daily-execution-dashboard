@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect, useCallback } from "react"
+import { createPortal } from "react-dom"
 import { Task } from "@/lib/types"
 import { today } from "@/lib/carryForward"
 import { useIsMobile } from "@/lib/useIsMobile"
@@ -42,6 +43,7 @@ export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive
   const [editRecurring, setEditRecurring] = useState(task.isRecurringDaily ?? false)
   const [showMobileNotes, setShowMobileNotes] = useState(false)
   const [expandedNotes, setExpandedNotes] = useState<Set<number>>(new Set())
+  const [portalReady, setPortalReady] = useState(false)
 
   const noteRef = useRef<HTMLTextAreaElement>(null)
   const mobileNoteRef = useRef<HTMLTextAreaElement>(null)
@@ -58,6 +60,7 @@ export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive
     el.style.overflowY = el.scrollHeight > NOTE_MAX_H ? "auto" : "hidden"
   }, [])
 
+  useEffect(() => { setPortalReady(true) }, [])
   useEffect(() => { resizeNote(noteRef.current) }, [noteText, resizeNote])
   useEffect(() => { resizeNote(mobileNoteRef.current) }, [noteText, showMobileNotes, resizeNote])
 
@@ -126,8 +129,8 @@ export default function TaskModal({ task, onClose, onSaveNote, onEdit, onArchive
 
   return (
     <>
-      {/* Mobile fullscreen notes */}
-      {showMobileNotes && MobileNotesOverlay}
+      {/* Mobile fullscreen notes — rendered in a portal to escape body overflow-x: hidden */}
+      {showMobileNotes && portalReady && createPortal(MobileNotesOverlay, document.body)}
 
       {/* Main modal */}
       <div
