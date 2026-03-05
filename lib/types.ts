@@ -28,4 +28,6 @@ export type Task = {
   isRecurringDaily?: boolean             // default = false
   // V2.3 additions (optional for backward compat)
   pomodoroSessions?: PomodoroSession[]   // append-only log
+  // V2.4.2 additions (optional for backward compat)
+  orderIndex?: number  // manual sort order for pending tasks; absent = sort by createdAt
 }

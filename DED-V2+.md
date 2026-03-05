@@ -17,6 +17,7 @@ This document defines the long-term architecture, feature roadmap, and guardrail
 | V2.3 | Cognitive Productivity Layer | Completed |
 | V2.4 | Mobile Native UX Layer | Completed |
 | V2.4.1 | Notes UX Improvements | Completed |
+| V2.4.2 | Manual Ordering + History Notes | Completed |
 | V2.5 | AI Productivity Layer | Planned |
 
 ---
@@ -224,6 +225,35 @@ Toggleable analytics panel including:
 - 30-day heatmap grid
 
 **Constraints:** No heavy chart libraries.
+
+### Manual Task Ordering
+
+Users can drag pending tasks to set a custom order that persists across reloads and devices.
+
+**Schema field:**
+
+```ts
+orderIndex?: number  // optional; absent tasks sort by createdAt
+```
+
+**Pending task sort order:**
+
+1. `orderIndex` ASC (tasks with no orderIndex sort to end)
+2. `createdAt` ASC as tiebreaker
+
+**Completed tasks:** unaffected; sorted by `completedAt DESC`.
+
+**New task creation:** `orderIndex = max(existing orderIndex) + 1` so new tasks append at the bottom.
+
+**Drag reordering:**
+- Assigns sequential `0, 1, 2…` indices to the entire pending list on drop.
+- Only tasks whose `orderIndex` value changed are written to Firestore (minimal writes).
+- Desktop: full drag-and-drop via dnd-kit.
+- Mobile: orderIndex persists (tasks appear in correct order via Firestore sync); mobile drag disabled to preserve scroll.
+
+**Backward compatible:** field is optional; existing tasks without `orderIndex` continue working and sort after indexed tasks by `createdAt`.
+
+---
 
 ### Focus Mode
 
@@ -473,6 +503,47 @@ Enhanced notes editing and reading experience inside `TaskModal`.
 
 - Reuses existing `dailyNotes[]` field on Task
 - No new fields added
+
+---
+
+## V2.4.2 – Manual Ordering + History Notes [COMPLETED]
+
+Two targeted UX improvements with no breaking changes.
+
+### Manual Task Ordering
+
+See documentation under V2.2 Productivity Expansion → Manual Task Ordering.
+
+### Notes Visibility in History View
+
+Each history entry now displays task notes inline.
+
+**History card fields shown:**
+
+- Task title
+- Tags (badge)
+- Priority (if non-medium)
+- Completion date
+- Notes preview (3-line clamp of most recent note)
+
+**Expand/Collapse (desktop):**
+
+- "Expand notes" link appears when note length > 150 chars, contains newlines, or task has notes on multiple days.
+- Expanded state shows all `dailyNotes` sorted newest-first, with date headers.
+- "Collapse" link returns to preview.
+
+**Mobile fullscreen modal:**
+
+- On mobile (< 768px), tapping "View notes" opens a `z-[70]` fixed fullscreen overlay.
+- Overlay shows all notes sorted newest-first with date headers.
+- "Close" button in header dismisses the modal.
+
+**Constraints:**
+
+- History remains read-only — no editing from History view.
+- No Firestore schema changes — reuses existing `dailyNotes[]` field.
+- No heavy libraries.
+- Compatible with all themes.
 
 ---
 

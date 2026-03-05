@@ -39,14 +39,12 @@ import HistoryView from "./HistoryView"
 import MobileBottomNav, { MobileTab } from "./MobileBottomNav"
 import { usePomodoro } from "@/context/PomodoroContext"
 
-// ── Priority sort weight ──────────────────────────────────────────────────────
-const P_WEIGHT: Record<string, number> = { high: 0, medium: 1, low: 2 }
-
-function sortByPriority(tasks: Task[]): Task[] {
+// ── Pending task sort: orderIndex ASC, fallback to createdAt ──────────────────
+function sortPendingTasks(tasks: Task[]): Task[] {
   return [...tasks].sort((a, b) => {
-    const pa = P_WEIGHT[a.priority ?? "medium"]
-    const pb = P_WEIGHT[b.priority ?? "medium"]
-    if (pa !== pb) return pa - pb
+    const ai = a.orderIndex ?? Infinity
+    const bi = b.orderIndex ?? Infinity
+    if (ai !== bi) return ai - bi
     return a.createdAt.localeCompare(b.createdAt)
   })
 }
@@ -277,7 +275,15 @@ export default function TaskBoard() {
 
   function handleAdd(task: Task) {
     const now = new Date().toISOString()
-    const full: Task = { ...task, archived: false, updatedAt: now }
+    // Assign orderIndex = highest existing + 1 so new tasks appear at the bottom
+    const pendingWithIndex = tasks.filter(
+      (t) => t.status === "pending" && !(t.archived ?? false) && t.orderIndex != null
+    )
+    const maxIndex = pendingWithIndex.reduce(
+      (max, t) => Math.max(max, t.orderIndex!),
+      -1
+    )
+    const full: Task = { ...task, archived: false, updatedAt: now, orderIndex: maxIndex + 1 }
     persist([...tasks, full])
     if (user) addTask(user.uid, full)
   }
@@ -492,18 +498,50 @@ export default function TaskBoard() {
     if (!activeTaskItem) return
 
     if (overTask && activeTaskItem.status === overTask.status) {
-      const sameColumn = tasks.filter((t) => t.status === activeTaskItem.status)
-      const otherColumn = tasks.filter((t) => t.status !== activeTaskItem.status)
-      const oldIndex = sameColumn.findIndex((t) => t.id === activeId)
-      const newIndex = sameColumn.findIndex((t) => t.id === overId)
+      // Use the same sorted visual list that SortableContext sees so indices match
+      const todayStr = today()
+      const visualList =
+        activeTaskItem.status === "pending"
+          ? sortPendingTasks(
+              tasks.filter(
+                (t) => t.status === "pending" && !(t.archived ?? false) && t.createdAt <= todayStr
+              )
+            )
+          : tasks.filter(
+              (t) =>
+                t.status === "completed" &&
+                t.completionHistory.some((h) => h.date === todayStr)
+            )
+
+      const oldIndex = visualList.findIndex((t) => t.id === activeId)
+      const newIndex = visualList.findIndex((t) => t.id === overId)
+
       if (oldIndex !== newIndex) {
-        const reordered = arrayMove(sameColumn, oldIndex, newIndex)
-        const all =
-          activeTaskItem.status === "pending"
-            ? [...reordered, ...otherColumn]
-            : [...otherColumn, ...reordered]
-        setTasks(all)
-        if (!user) saveTasks(all)
+        const reordered = arrayMove(visualList, oldIndex, newIndex)
+
+        if (activeTaskItem.status === "pending") {
+          // Assign sequential orderIndex; only write tasks whose index changed
+          const updatedAt = new Date().toISOString()
+          const changed: { id: string; orderIndex: number }[] = []
+          reordered.forEach((t, i) => {
+            if ((t.orderIndex ?? -1) !== i) changed.push({ id: t.id, orderIndex: i })
+          })
+          const reorderedWithIndex = reordered.map((t, i) => ({ ...t, orderIndex: i, updatedAt }))
+          // Merge back: keep tasks not in the visual list unchanged
+          const notInList = tasks.filter((t) => !visualList.some((vt) => vt.id === t.id))
+          persist([...reorderedWithIndex, ...notInList])
+          if (user && changed.length > 0) {
+            changed.forEach(({ id, orderIndex }) =>
+              updateTask(user.uid, id, { orderIndex, updatedAt })
+            )
+          }
+        } else {
+          // Completed tasks: visual reorder in local state only (no orderIndex)
+          const notInList = tasks.filter((t) => !visualList.some((vt) => vt.id === t.id))
+          const all = [...reordered, ...notInList]
+          setTasks(all)
+          if (!user) saveTasks(all)
+        }
       }
       return
     }
@@ -517,7 +555,7 @@ export default function TaskBoard() {
   // Only show pending tasks whose createdAt is today or earlier.
   // Recurring instances get createdAt: tomorrow() so they stay hidden until the next day.
   const todayStr = today()
-  const pendingTasks = sortByPriority(
+  const pendingTasks = sortPendingTasks(
     activeTasks.filter((t) => t.status === "pending" && t.createdAt <= todayStr)
   )
   const completedTasks = activeTasks.filter(
