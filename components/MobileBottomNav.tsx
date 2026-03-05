@@ -1,6 +1,6 @@
 "use client"
 
-export type MobileTab = "pending" | "completed" | "insights"
+export type MobileTab = "pending" | "completed" | "history"
 
 type Props = {
   activeTab: MobileTab
@@ -35,11 +35,11 @@ export default function MobileBottomNav({ activeTab, pendingCount, completedCoun
       </button>
 
       <button
-        onClick={() => onTabChange("insights")}
-        className={`mobile-nav-tab ${activeTab === "insights" ? "mobile-nav-tab-active" : ""}`}
-        aria-current={activeTab === "insights" ? "page" : undefined}
+        onClick={() => onTabChange("history")}
+        className={`mobile-nav-tab ${activeTab === "history" ? "mobile-nav-tab-active" : ""}`}
+        aria-current={activeTab === "history" ? "page" : undefined}
       >
-        <span className="mobile-nav-label">Insights</span>
+        <span className="mobile-nav-label">History</span>
       </button>
     </nav>
   )

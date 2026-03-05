@@ -45,6 +45,12 @@ export default function Home() {
               >
                 Archive
               </Link>
+              <Link
+                href="/history"
+                className="hidden md:block text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+              >
+                History
+              </Link>
               <ThemeToggle />
             </div>
             <AuthButton />

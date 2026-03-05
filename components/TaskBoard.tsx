@@ -35,6 +35,7 @@ import AnalyticsPanel from "./AnalyticsPanel"
 import PomodoroTimer from "./PomodoroTimer"
 import PlaybookPanel from "./PlaybookPanel"
 import InsightModal from "./InsightModal"
+import HistoryView from "./HistoryView"
 import MobileBottomNav, { MobileTab } from "./MobileBottomNav"
 import { usePomodoro } from "@/context/PomodoroContext"
 
@@ -690,12 +691,9 @@ export default function TaskBoard() {
                 isDropTarget={dragOverColumn === "completed"}
               />
             )}
-            {mobileTab === "insights" && (
+            {mobileTab === "history" && (
               <div className="mt-2">
-                <AnalyticsPanel
-                  tasks={tasks}
-                  onClose={() => setMobileTab("pending")}
-                />
+                <HistoryView tasks={tasks} onClose={() => setMobileTab("pending")} />
               </div>
             )}
           </div>

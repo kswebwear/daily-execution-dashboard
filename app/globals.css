@@ -1817,3 +1817,26 @@ html.jarvis .mobile-complete-btn:active {
 html.jarvis .mobile-complete-icon {
   color: var(--j-text-dim);
 }
+
+
+/* =========================================================
+   HISTORY VIEW
+   ========================================================= */
+
+.history-card {
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  background: #18181b;
+  padding: 12px 16px;
+}
+
+html.cyber .history-card {
+  background: rgba(8, 8, 32, 0.45);
+  backdrop-filter: blur(10px);
+  border-color: rgba(0, 229, 255, 0.12);
+}
+
+html.jarvis .history-card {
+  background: var(--j-panel-bg);
+  border: 1px solid var(--j-panel-border);
+}
