@@ -57,6 +57,28 @@ body {
 }
 
 /* =========================================================
+   BASE: TASK CARD ELEVATION + PRIORITY STRIPS (all themes)
+   Theme-specific rules below override these as needed.
+   ========================================================= */
+
+.task-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease,
+              border-color 0.15s ease, background-color 0.15s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* Priority left-border strips — visible across all themes */
+.priority-high { border-left: 3px solid rgba(239, 68, 68, 0.7);  }
+.priority-low  { border-left: 3px solid rgba(113, 113, 122, 0.3); }
+
+/* =========================================================
    CYBERPUNK THEME — all rules scoped to html.cyber
    ========================================================= */
 
@@ -1859,7 +1881,7 @@ html.aurora {
   /* Secondary: sky-400 (used sparingly for contrast) */
   --a-accent-2:      #38bdf8;
   /* Glass panel surface */
-  --a-panel-bg:      rgba(255, 255, 255, 0.06);
+  --a-panel-bg:      rgba(255, 255, 255, 0.04);
   /* Panel border — neutral white tint, not tinted purple */
   --a-panel-border:  rgba(255, 255, 255, 0.1);
   /* Active/hover border */
@@ -1886,10 +1908,9 @@ html.aurora {
    ─────────────────────────────────────────────────────── */
 html.aurora body {
   background:
-    radial-gradient(circle at 18% 12%,  rgba(79, 70, 229, 0.38) 0%, transparent 42%),
-    radial-gradient(circle at 85% 85%,  rgba(14, 165, 233, 0.28) 0%, transparent 38%),
-    radial-gradient(ellipse 55% 45% at 52% 22%, rgba(99, 102, 241, 0.14) 0%, transparent 50%),
-    linear-gradient(135deg, #020617 0%, #0f172a 50%, #0e1b3d 100%);
+    radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.28) 0%, transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(14, 165, 233, 0.28) 0%, transparent 40%),
+    linear-gradient(135deg, #020617 0%, #0f172a 50%, #1e1b4b 100%);
   background-attachment: fixed;
   color: var(--a-text);
 }
@@ -1983,12 +2004,19 @@ html.aurora .task-drop-zone[data-over="true"] {
     inset 0 0 0 1px rgba(129, 140, 248, 0.12);
 }
 
+/* Column focus: subtle border brightens when mouse is anywhere in the column */
+@media (hover: hover) and (pointer: fine) {
+  html.aurora .task-drop-zone:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+}
+
 /* ── Layer 2: Task cards ───────────────────────────────────
    Elevated above panels via stronger shadow + brighter bg.
    Hover: translateY(-3px) gated to pointer devices only.
    ─────────────────────────────────────────────────────── */
 html.aurora .task-card {
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   border: 1px solid rgba(255, 255, 255, 0.12);

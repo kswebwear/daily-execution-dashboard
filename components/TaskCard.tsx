@@ -40,7 +40,7 @@ export default function TaskCard({ task, onClick, onComplete, onArchive, onDelet
   const priority = task.priority ?? "medium"
 
   const tagStyle = theme === "cyber" && task.tag ? getNeonTagStyle(task.tag) : {}
-  const priorityStripClass = isJarvis ? `priority-${priority}` : ""
+  const priorityStripClass = `priority-${priority}`
 
   function triggerComplete() {
     if (!onComplete || completing || task.status === "completed") return
