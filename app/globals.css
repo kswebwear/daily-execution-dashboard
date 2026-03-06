@@ -1864,9 +1864,9 @@ html.aurora {
   /* Secondary: sky-400 (used sparingly for contrast) */
   --a-accent-2:      #38bdf8;
   /* Glass panel surface */
-  --a-panel-bg:      rgba(255, 255, 255, 0.045);
+  --a-panel-bg:      rgba(255, 255, 255, 0.06);
   /* Panel border — neutral white tint, not tinted purple */
-  --a-panel-border:  rgba(255, 255, 255, 0.09);
+  --a-panel-border:  rgba(255, 255, 255, 0.1);
   /* Active/hover border */
   --a-panel-border-active: rgba(129, 140, 248, 0.4);
   /* Body text */
@@ -1891,10 +1891,10 @@ html.aurora {
    ─────────────────────────────────────────────────────── */
 html.aurora body {
   background:
-    radial-gradient(ellipse 80% 55% at 12% 8%,  rgba(79, 70, 229, 0.22) 0%, transparent 60%),
-    radial-gradient(ellipse 65% 45% at 88% 88%, rgba(14, 165, 233, 0.16) 0%, transparent 55%),
-    radial-gradient(ellipse 45% 55% at 55% 25%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-    linear-gradient(150deg, #020617 0%, #0d1224 40%, #0c1445 100%);
+    radial-gradient(circle at 18% 12%,  rgba(79, 70, 229, 0.38) 0%, transparent 42%),
+    radial-gradient(circle at 85% 85%,  rgba(14, 165, 233, 0.28) 0%, transparent 38%),
+    radial-gradient(ellipse 55% 45% at 52% 22%, rgba(99, 102, 241, 0.14) 0%, transparent 50%),
+    linear-gradient(135deg, #020617 0%, #0f172a 50%, #0e1b3d 100%);
   background-attachment: fixed;
   color: var(--a-text);
 }
@@ -1917,14 +1917,14 @@ html.aurora .aurora-fx-bg {
 html.aurora .aurora-fx-bg::before {
   content: '';
   position: absolute;
-  top: -15%;
-  left: -10%;
-  width: 60%;
-  height: 60%;
+  top: -18%;
+  left: -12%;
+  width: 65%;
+  height: 65%;
   border-radius: 50%;
   background: radial-gradient(ellipse at center,
-    rgba(99, 102, 241, 0.18) 0%,
-    rgba(67, 56, 202, 0.07) 40%,
+    rgba(99, 102, 241, 0.26) 0%,
+    rgba(67, 56, 202, 0.12) 40%,
     transparent 70%);
   filter: blur(48px);
   animation: auroraShift1 32s ease-in-out infinite;
@@ -1934,14 +1934,14 @@ html.aurora .aurora-fx-bg::before {
 html.aurora .aurora-fx-bg::after {
   content: '';
   position: absolute;
-  bottom: -12%;
-  right: -10%;
-  width: 52%;
-  height: 52%;
+  bottom: -14%;
+  right: -12%;
+  width: 58%;
+  height: 58%;
   border-radius: 50%;
   background: radial-gradient(ellipse at center,
-    rgba(14, 165, 233, 0.14) 0%,
-    rgba(2, 132, 199, 0.05) 40%,
+    rgba(14, 165, 233, 0.22) 0%,
+    rgba(2, 132, 199, 0.09) 40%,
     transparent 70%);
   filter: blur(48px);
   animation: auroraShift2 38s ease-in-out infinite alternate;
@@ -1975,8 +1975,8 @@ html.aurora .task-drop-zone {
   border-radius: 16px;
   border: 1px solid var(--a-panel-border);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.05) inset,
-    0 4px 24px rgba(0, 0, 0, 0.22);
+    0 1px 0 rgba(255, 255, 255, 0.07) inset,
+    0 8px 32px rgba(0, 0, 0, 0.32);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -1993,10 +1993,10 @@ html.aurora .task-drop-zone[data-over="true"] {
    Hover: translateY(-3px) gated to pointer devices only.
    ─────────────────────────────────────────────────────── */
 html.aurora .task-card {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.09);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: var(--a-card-shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -2120,7 +2120,7 @@ html.aurora .analytics-panel {
   border: 1px solid var(--a-panel-border);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.07) inset, 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
 /* --- Scrollbar --- */
@@ -2153,6 +2153,12 @@ html.aurora .task-tag-badge {
 /* ── Focus overlay (Layer 3) ───────────────────────────────── */
 html.aurora .focus-overlay {
   background: rgba(2, 6, 23, 0.97);
+}
+
+html.aurora .focus-task-card {
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(129, 140, 248, 0.22);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 html.aurora .focus-complete-btn {
