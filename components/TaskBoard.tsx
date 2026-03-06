@@ -40,26 +40,47 @@ import MobileBottomNav, { MobileTab } from "./MobileBottomNav"
 import { usePomodoro } from "@/context/PomodoroContext"
 
 // ── Pending task sort ─────────────────────────────────────────────────────────
-// Default: priority DESC → createdAt ASC
-// Manual override: if ANY pending task has orderIndex, sort all by orderIndex ASC
+// Default (no manual order): priority DESC → createdAt ASC
+// Manual order active: tasks WITH orderIndex keep their explicit position;
+//   tasks WITHOUT orderIndex (newly added) merge in by priority — inserted
+//   after the last task of same-or-higher priority in the ordered list.
 const P_WEIGHT: Record<string, number> = { high: 0, medium: 1, low: 2 }
 
 function sortPendingTasks(tasks: Task[]): Task[] {
   const hasManualOrder = tasks.some((t) => t.orderIndex !== undefined)
-  if (hasManualOrder) {
+  if (!hasManualOrder) {
     return [...tasks].sort((a, b) => {
-      const ai = a.orderIndex ?? Infinity
-      const bi = b.orderIndex ?? Infinity
-      if (ai !== bi) return ai - bi
+      const pa = P_WEIGHT[a.priority ?? "medium"]
+      const pb = P_WEIGHT[b.priority ?? "medium"]
+      if (pa !== pb) return pa - pb
       return a.createdAt.localeCompare(b.createdAt)
     })
   }
-  return [...tasks].sort((a, b) => {
-    const pa = P_WEIGHT[a.priority ?? "medium"]
-    const pb = P_WEIGHT[b.priority ?? "medium"]
-    if (pa !== pb) return pa - pb
-    return a.createdAt.localeCompare(b.createdAt)
-  })
+
+  // Split into manually-ordered and priority-only groups
+  const withOrder = [...tasks]
+    .filter((t) => t.orderIndex !== undefined)
+    .sort((a, b) => a.orderIndex! - b.orderIndex!)
+  const withoutOrder = [...tasks]
+    .filter((t) => t.orderIndex === undefined)
+    .sort((a, b) => {
+      const pa = P_WEIGHT[a.priority ?? "medium"]
+      const pb = P_WEIGHT[b.priority ?? "medium"]
+      if (pa !== pb) return pa - pb
+      return a.createdAt.localeCompare(b.createdAt)
+    })
+
+  // Merge: insert each unordered task after the last task of same or higher priority
+  const result = [...withOrder]
+  for (const task of withoutOrder) {
+    const tw = P_WEIGHT[task.priority ?? "medium"]
+    let insertAt = 0
+    for (let i = 0; i < result.length; i++) {
+      if (P_WEIGHT[result[i].priority ?? "medium"] <= tw) insertAt = i + 1
+    }
+    result.splice(insertAt, 0, task)
+  }
+  return result
 }
 
 // ── Tomorrow in Sydney TZ ─────────────────────────────────────────────────────
@@ -288,23 +309,10 @@ export default function TaskBoard() {
 
   function handleAdd(task: Task) {
     const now = new Date().toISOString()
-    // Only assign orderIndex if manual ordering is already active.
-    // If no pending task has orderIndex yet, let priority sorting handle placement.
-    const pendingActive = tasks.filter(
-      (t) => t.status === "pending" && !(t.archived ?? false)
-    )
-    const hasManualOrder = pendingActive.some((t) => t.orderIndex !== undefined)
-    let orderIndex: number | undefined
-    if (hasManualOrder) {
-      const max = pendingActive.reduce((m, t) => Math.max(m, t.orderIndex ?? -1), -1)
-      orderIndex = max + 1
-    }
-    const full: Task = {
-      ...task,
-      archived: false,
-      updatedAt: now,
-      ...(orderIndex !== undefined ? { orderIndex } : {}),
-    }
+    // Never pre-assign orderIndex. New tasks slot into priority sort automatically.
+    // If manual ordering is active, sortPendingTasks merges them by priority.
+    // orderIndex is only assigned by drag-and-drop (handleDragEnd).
+    const full: Task = { ...task, archived: false, updatedAt: now }
     persist([...tasks, full])
     if (user) addTask(user.uid, full)
   }
