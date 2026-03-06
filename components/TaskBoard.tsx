@@ -40,47 +40,27 @@ import MobileBottomNav, { MobileTab } from "./MobileBottomNav"
 import { usePomodoro } from "@/context/PomodoroContext"
 
 // ── Pending task sort ─────────────────────────────────────────────────────────
-// Default (no manual order): priority DESC → createdAt ASC
-// Manual order active: tasks WITH orderIndex keep their explicit position;
-//   tasks WITHOUT orderIndex (newly added) merge in by priority — inserted
-//   after the last task of same-or-higher priority in the ordered list.
+// Priority is ALWAYS the primary sort key.
+// Within the same priority group, orderIndex (set by drag) is the tiebreaker.
+// Tasks without orderIndex (newly added) fall after dragged tasks of the same
+// priority, then sort by createdAt.
 const P_WEIGHT: Record<string, number> = { high: 0, medium: 1, low: 2 }
 
 function sortPendingTasks(tasks: Task[]): Task[] {
-  const hasManualOrder = tasks.some((t) => t.orderIndex !== undefined)
-  if (!hasManualOrder) {
-    return [...tasks].sort((a, b) => {
-      const pa = P_WEIGHT[a.priority ?? "medium"]
-      const pb = P_WEIGHT[b.priority ?? "medium"]
-      if (pa !== pb) return pa - pb
-      return a.createdAt.localeCompare(b.createdAt)
-    })
-  }
+  return [...tasks].sort((a, b) => {
+    // 1. Priority always wins across groups
+    const pa = P_WEIGHT[a.priority ?? "medium"]
+    const pb = P_WEIGHT[b.priority ?? "medium"]
+    if (pa !== pb) return pa - pb
 
-  // Split into manually-ordered and priority-only groups
-  const withOrder = [...tasks]
-    .filter((t) => t.orderIndex !== undefined)
-    .sort((a, b) => a.orderIndex! - b.orderIndex!)
-  const withoutOrder = [...tasks]
-    .filter((t) => t.orderIndex === undefined)
-    .sort((a, b) => {
-      const pa = P_WEIGHT[a.priority ?? "medium"]
-      const pb = P_WEIGHT[b.priority ?? "medium"]
-      if (pa !== pb) return pa - pb
-      return a.createdAt.localeCompare(b.createdAt)
-    })
+    // 2. Within same priority: respect drag order
+    const ai = a.orderIndex ?? Infinity
+    const bi = b.orderIndex ?? Infinity
+    if (ai !== bi) return ai - bi
 
-  // Merge: insert each unordered task after the last task of same or higher priority
-  const result = [...withOrder]
-  for (const task of withoutOrder) {
-    const tw = P_WEIGHT[task.priority ?? "medium"]
-    let insertAt = 0
-    for (let i = 0; i < result.length; i++) {
-      if (P_WEIGHT[result[i].priority ?? "medium"] <= tw) insertAt = i + 1
-    }
-    result.splice(insertAt, 0, task)
-  }
-  return result
+    // 3. Same priority, same (or both absent) orderIndex: older first
+    return a.createdAt.localeCompare(b.createdAt)
+  })
 }
 
 // ── Tomorrow in Sydney TZ ─────────────────────────────────────────────────────
