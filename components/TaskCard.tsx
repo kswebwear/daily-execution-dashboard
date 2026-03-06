@@ -174,14 +174,16 @@ export default function TaskCard({ task, onClick, onComplete, onArchive, onDelet
             </div>
           </div>
 
-          {/* Details button — hover on desktop, always visible on mobile */}
+          {/* Details button — always visible, elevated on hover */}
           <button
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation()
               onClick(task)
             }}
-            className="task-card-menu-btn shrink-0 text-zinc-700 hover:text-zinc-400 text-xs px-1.5 py-0.5 rounded transition-colors opacity-0 group-hover:opacity-100"
+            className="task-card-menu-btn shrink-0 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700/60 text-base leading-none px-2 py-1 rounded transition-colors"
+            aria-label="Edit task"
+            title="Edit task"
           >
             ···
           </button>

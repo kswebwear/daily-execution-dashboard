@@ -1552,12 +1552,7 @@ html.jarvis .insight-result-text { color: var(--j-text); }
   }
 }
 
-/* ── Menu button: hover on desktop, always-on mobile ── */
-@media (max-width: 767px) {
-  .task-card-menu-btn {
-    opacity: 1 !important;
-  }
-}
+/* ── Menu button: always visible, no opacity override needed ── */
 
 /* ── Swipe quick actions strip ── */
 .task-quick-actions {
