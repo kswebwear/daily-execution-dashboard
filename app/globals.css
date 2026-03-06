@@ -1847,3 +1847,441 @@ html.jarvis .history-card {
   background: var(--j-panel-bg);
   border: 1px solid var(--j-panel-border);
 }
+
+/* =========================================================
+   AURORA THEME — all rules scoped to html.aurora
+   Calm, premium SaaS glass dashboard. Deep indigo base,
+   violet/purple accent, layered glass depth system.
+   ========================================================= */
+
+/* --- Aurora CSS custom properties --- */
+html.aurora {
+  --a-accent: #a78bfa;
+  --a-accent-bright: #c4b5fd;
+  --a-accent-dim: rgba(167, 139, 250, 0.3);
+  --a-accent-glow: rgba(167, 139, 250, 0.12);
+  --a-panel-bg: rgba(255, 255, 255, 0.04);
+  --a-panel-border: rgba(167, 139, 250, 0.18);
+  --a-text: #e2d9f3;
+  --a-text-dim: rgba(200, 185, 230, 0.5);
+}
+
+/* --- Animated gradient background (Layer 0) --- */
+html.aurora body {
+  background: linear-gradient(135deg, #0f0c29 0%, #1a0533 35%, #1e1b4b 65%, #0f172a 100%);
+  background-size: 400% 400%;
+  animation: auroraGradient 28s ease infinite;
+  color: var(--a-text);
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+@keyframes auroraGradient {
+  0%, 100% { background-position: 0% 50%; }
+  33%       { background-position: 100% 0%; }
+  66%       { background-position: 50% 100%; }
+}
+
+/* --- Aurora fx overlay (soft glowing orbs, Layer 0) --- */
+.aurora-fx-bg {
+  display: none;
+}
+
+html.aurora .aurora-fx-bg {
+  display: block;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+html.aurora .aurora-fx-bg::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -20%;
+  width: 80%;
+  height: 70%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(139, 92, 246, 0.1) 0%, transparent 65%);
+  animation: auroraShift1 22s ease-in-out infinite;
+}
+
+html.aurora .aurora-fx-bg::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  right: -20%;
+  width: 70%;
+  height: 60%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(99, 102, 241, 0.08) 0%, transparent 65%);
+  animation: auroraShift2 28s ease-in-out infinite alternate;
+}
+
+@keyframes auroraShift1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(8%, 6%) scale(1.08); }
+  66%       { transform: translate(-5%, 10%) scale(0.95); }
+}
+
+@keyframes auroraShift2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-6%, -8%) scale(1.1); }
+  100% { transform: translate(5%, 5%) scale(0.92); }
+}
+
+/* --- Ensure content sits above fixed overlay --- */
+html.aurora main,
+html.aurora header {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Task cards: glass surface (Layer 2 — elevated above panels) --- */
+html.aurora .task-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--a-panel-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+html.aurora .task-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(167, 139, 250, 0.45);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(167, 139, 250, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+
+/* --- Task drop zone (panel — Layer 1) --- */
+html.aurora .task-drop-zone {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 16px;
+  border: 1px solid rgba(167, 139, 250, 0.08);
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+html.aurora .task-drop-zone[data-over="true"] {
+  background: rgba(167, 139, 250, 0.06);
+  border-color: rgba(167, 139, 250, 0.3);
+  box-shadow: inset 0 0 0 1px rgba(167, 139, 250, 0.18), 0 0 20px rgba(167, 139, 250, 0.06);
+}
+
+/* --- Drag overlay (Layer 3) --- */
+html.aurora .task-drag-overlay {
+  background: rgba(20, 10, 45, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: rgba(167, 139, 250, 0.5);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45), 0 0 24px rgba(167, 139, 250, 0.14);
+}
+
+/* --- Column headers --- */
+html.aurora .task-column-header {
+  color: var(--a-accent);
+  letter-spacing: 0.06em;
+}
+
+/* --- Empty placeholder --- */
+html.aurora .task-empty-placeholder {
+  border-color: rgba(167, 139, 250, 0.1);
+  color: rgba(167, 139, 250, 0.3);
+}
+
+/* --- Modals / panels (Layer 3 — highest floating UI) --- */
+html.aurora .cyber-panel {
+  background: rgba(12, 8, 28, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-color: var(--a-panel-border);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(167, 139, 250, 0.07);
+}
+
+html.aurora .cyber-panel-divider {
+  border-color: rgba(167, 139, 250, 0.1);
+}
+
+/* --- Theme toggle button --- */
+html.aurora .theme-toggle-btn {
+  color: var(--a-accent);
+  border-color: rgba(167, 139, 250, 0.35);
+  text-shadow: 0 0 8px rgba(167, 139, 250, 0.4);
+}
+
+html.aurora .theme-toggle-btn:hover {
+  border-color: rgba(167, 139, 250, 0.7);
+  box-shadow: 0 0 14px rgba(167, 139, 250, 0.18);
+}
+
+/* --- Live clock --- */
+html.aurora .live-clock {
+  color: var(--a-accent);
+  text-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
+}
+
+/* --- Add task button --- */
+html.aurora .add-task-btn {
+  border-color: rgba(167, 139, 250, 0.18);
+  color: rgba(167, 139, 250, 0.5);
+}
+
+html.aurora .add-task-btn:hover {
+  border-color: rgba(167, 139, 250, 0.5);
+  color: rgba(167, 139, 250, 0.9);
+}
+
+/* --- Inputs & textareas --- */
+html.aurora input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
+html.aurora textarea,
+html.aurora select {
+  background: rgba(12, 8, 28, 0.65);
+  border-color: rgba(167, 139, 250, 0.2);
+  color: var(--a-text);
+}
+
+html.aurora input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]):focus,
+html.aurora textarea:focus,
+html.aurora select:focus {
+  border-color: rgba(167, 139, 250, 0.5);
+  box-shadow: 0 0 12px rgba(167, 139, 250, 0.08);
+  outline: none;
+}
+
+/* --- Add task form --- */
+html.aurora .add-task-form {
+  background: rgba(12, 8, 28, 0.65);
+  border-color: rgba(167, 139, 250, 0.18);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* --- Generic outline buttons --- */
+html.aurora .cyber-outline-btn {
+  border-color: rgba(167, 139, 250, 0.22);
+  color: rgba(167, 139, 250, 0.6);
+}
+
+html.aurora .cyber-outline-btn:hover {
+  border-color: rgba(167, 139, 250, 0.55);
+  color: rgba(167, 139, 250, 0.95);
+}
+
+/* --- Analytics panel --- */
+html.aurora .analytics-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--a-panel-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+/* --- Scrollbar --- */
+html.aurora ::-webkit-scrollbar-thumb {
+  background: rgba(167, 139, 250, 0.2);
+  border-radius: 3px;
+}
+
+/* --- Focus overlay --- */
+html.aurora .focus-overlay {
+  background: rgba(8, 5, 18, 0.97);
+}
+
+/* --- Focus complete button --- */
+html.aurora .focus-complete-btn {
+  border-color: rgba(167, 139, 250, 0.35);
+  color: rgba(167, 139, 250, 0.9);
+  background: rgba(167, 139, 250, 0.06);
+}
+
+html.aurora .focus-complete-btn:hover {
+  background: rgba(167, 139, 250, 0.14);
+  border-color: rgba(167, 139, 250, 0.6);
+  box-shadow: 0 0 16px rgba(167, 139, 250, 0.2);
+}
+
+/* --- Pomodoro timer --- */
+html.aurora .pomo-timer {
+  background: rgba(12, 8, 28, 0.72);
+  border-color: rgba(167, 139, 250, 0.2);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+html.aurora .pomo-display {
+  color: var(--a-accent);
+  text-shadow: 0 0 16px rgba(167, 139, 250, 0.5);
+}
+
+html.aurora .pomo-progress-track {
+  background: rgba(167, 139, 250, 0.1);
+}
+
+html.aurora .pomo-progress-fill {
+  background: var(--a-accent);
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.5);
+}
+
+html.aurora .pomo-btn-primary {
+  background: rgba(167, 139, 250, 0.1);
+  border-color: rgba(167, 139, 250, 0.4);
+  color: var(--a-accent);
+}
+
+html.aurora .pomo-btn-primary:hover {
+  background: rgba(167, 139, 250, 0.2);
+  box-shadow: 0 0 12px rgba(167, 139, 250, 0.18);
+}
+
+html.aurora .pomo-btn-ghost {
+  border-color: rgba(167, 139, 250, 0.12);
+  color: var(--a-text-dim);
+}
+
+html.aurora .pomo-btn-ghost:hover {
+  border-color: rgba(167, 139, 250, 0.3);
+  color: var(--a-text);
+}
+
+html.aurora .pomo-focus-label  { color: var(--a-accent); }
+html.aurora .pomo-break-label  { color: rgba(110, 231, 183, 0.9); }
+html.aurora .pomo-complete-label { color: rgba(196, 181, 253, 0.9); }
+
+html.aurora .pomo-indicator {
+  color: var(--a-accent);
+  text-shadow: 0 0 6px rgba(167, 139, 250, 0.4);
+}
+
+html.aurora .pomo-dot-active {
+  background: var(--a-accent);
+  box-shadow: 0 0 6px var(--a-accent), 0 0 12px rgba(167, 139, 250, 0.35);
+}
+
+/* --- Playbook panel --- */
+html.aurora .playbook-panel {
+  background: rgba(12, 8, 28, 0.9);
+  border-color: var(--a-panel-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+html.aurora .playbook-item { border-color: rgba(167, 139, 250, 0.08); }
+html.aurora .playbook-item-open { border-color: rgba(167, 139, 250, 0.25); }
+
+html.aurora .playbook-apply-btn {
+  border-color: rgba(167, 139, 250, 0.3);
+  color: rgba(167, 139, 250, 0.7);
+}
+
+html.aurora .playbook-apply-btn:hover:not(:disabled) {
+  border-color: rgba(167, 139, 250, 0.6);
+  color: var(--a-accent);
+  box-shadow: 0 0 10px rgba(167, 139, 250, 0.1);
+}
+
+html.aurora .playbook-pomo-offer {
+  background: rgba(167, 139, 250, 0.04);
+  border-color: rgba(167, 139, 250, 0.15);
+}
+
+html.aurora .playbook-pomo-offer-text { color: var(--a-accent); }
+
+/* --- Insight modal --- */
+html.aurora .insight-modal {
+  background: rgba(12, 8, 28, 0.96);
+  border-color: var(--a-panel-border);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(167, 139, 250, 0.07);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+}
+
+html.aurora .insight-title { color: var(--a-accent); }
+
+html.aurora .insight-stat-cell {
+  background: rgba(167, 139, 250, 0.03);
+  border-color: rgba(167, 139, 250, 0.1);
+}
+
+html.aurora .insight-stat-value { color: var(--a-text); }
+html.aurora .insight-result-text { color: var(--a-text); }
+
+/* --- History card --- */
+html.aurora .history-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+  border-color: rgba(167, 139, 250, 0.14);
+}
+
+/* --- Mobile: bottom nav --- */
+html.aurora .mobile-bottom-nav {
+  background: rgba(10, 6, 22, 0.97);
+  border-top-color: rgba(167, 139, 250, 0.18);
+}
+
+html.aurora .mobile-nav-tab-active .mobile-nav-label {
+  color: var(--a-accent);
+  text-shadow: 0 0 8px rgba(167, 139, 250, 0.45);
+}
+
+html.aurora .mobile-nav-tab-active::before {
+  background: var(--a-accent);
+  box-shadow: 0 0 6px var(--a-accent);
+}
+
+/* --- Mobile: FAB (Layer 3) --- */
+html.aurora .mobile-fab {
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(167, 139, 250, 0.5);
+  color: var(--a-accent-bright);
+  box-shadow: 0 0 24px rgba(139, 92, 246, 0.3);
+}
+
+/* --- Mobile: add task sheet --- */
+html.aurora .mobile-add-sheet {
+  background: rgba(12, 8, 28, 0.97);
+  border-top-color: rgba(167, 139, 250, 0.2);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* --- Mobile: complete button --- */
+html.aurora .mobile-complete-btn {
+  border-color: rgba(167, 139, 250, 0.28);
+}
+
+html.aurora .mobile-complete-btn:active {
+  background: rgba(167, 139, 250, 0.1);
+  border-color: var(--a-accent);
+}
+
+html.aurora .mobile-complete-icon {
+  color: var(--a-text-dim);
+}
+
+/* --- Priority strips --- */
+html.aurora .priority-high {
+  border-left: 2px solid rgba(248, 113, 113, 0.7);
+}
+
+html.aurora .priority-medium {
+  border-left: 2px solid rgba(167, 139, 250, 0.3);
+}
+
+html.aurora .priority-low {
+  border-left: 2px solid rgba(140, 120, 200, 0.15);
+}
+
+/* --- Tag badges: soft aurora tint --- */
+html.aurora .task-tag-badge {
+  color: var(--a-text-dim) !important;
+  background: rgba(167, 139, 250, 0.07) !important;
+  border-color: rgba(167, 139, 250, 0.16) !important;
+  text-shadow: none !important;
+}

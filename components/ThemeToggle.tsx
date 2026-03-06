@@ -5,13 +5,15 @@ import { useTheme } from "@/context/ThemeContext"
 const LABELS: Record<string, string> = {
   minimal: "CYBER",
   cyber: "JARVIS",
-  jarvis: "MINIMAL",
+  jarvis: "AURORA",
+  aurora: "MINIMAL",
 }
 
 const TITLES: Record<string, string> = {
   minimal: "Switch to Cyberpunk mode",
   cyber: "Switch to JARVIS mode",
-  jarvis: "Switch to Minimal mode",
+  jarvis: "Switch to Aurora mode",
+  aurora: "Switch to Minimal mode",
 }
 
 export default function ThemeToggle() {

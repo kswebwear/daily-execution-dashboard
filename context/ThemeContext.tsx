@@ -17,8 +17,8 @@ const ThemeContext = createContext<ThemeContextType>({
   toggleFocusMode: () => {},
 })
 
-const THEME_ORDER: Theme[] = ["minimal", "cyber", "jarvis"]
-const THEME_CLASSES = ["cyber", "jarvis"] as const
+const THEME_ORDER: Theme[] = ["minimal", "cyber", "jarvis", "aurora"]
+const THEME_CLASSES = ["cyber", "jarvis", "aurora"] as const
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("minimal")
@@ -26,7 +26,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem(THEME_KEY)
-    if (saved === "cyber" || saved === "jarvis") {
+    if (saved === "cyber" || saved === "jarvis" || saved === "aurora") {
       setTheme(saved)
     }
   }, [])

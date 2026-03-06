@@ -43,7 +43,7 @@ export default function RootLayout({
         {/* Anti-flicker: apply saved theme class before React hydrates */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem('ded_theme');if(t==='cyber'||t==='jarvis')document.documentElement.classList.add(t)}catch(e){}`,
+            __html: `try{var t=localStorage.getItem('ded_theme');if(t==='cyber'||t==='jarvis'||t==='aurora')document.documentElement.classList.add(t)}catch(e){}`,
           }}
         />
       </head>
@@ -53,6 +53,8 @@ export default function RootLayout({
         {/* JARVIS background fx — always in DOM, visible only when html.jarvis active */}
         <div aria-hidden="true" className="jarvis-fx-grid" />
         <div aria-hidden="true" className="jarvis-fx-particles" />
+        {/* Aurora background fx — always in DOM, visible only when html.aurora active */}
+        <div aria-hidden="true" className="aurora-fx-bg" />
 
         <ThemeProvider>
           <AuthProvider>
