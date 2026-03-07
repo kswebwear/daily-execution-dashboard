@@ -2562,6 +2562,7 @@ html.aurora .task-quick-btn {
 }
 
 /* ── Command palette hint button (header) ─────────────────── */
+/* applies to both mobile icon-only and desktop badge */
 html.cyber .cmd-hint-btn {
   border-color: rgba(0, 229, 255, 0.22);
   color: rgba(0, 229, 255, 0.5);
