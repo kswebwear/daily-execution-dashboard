@@ -37,6 +37,7 @@ import PlaybookPanel from "./PlaybookPanel"
 import InsightModal from "./InsightModal"
 import HistoryView from "./HistoryView"
 import MobileBottomNav, { MobileTab } from "./MobileBottomNav"
+import CommandPalette from "./CommandPalette"
 import { usePomodoro } from "@/context/PomodoroContext"
 
 // ── Pending task sort ─────────────────────────────────────────────────────────
@@ -788,6 +789,14 @@ export default function TaskBoard() {
           onArchive={handleArchive}
         />
       )}
+
+      {/* ── Command Palette (⌘K / Ctrl+K) ── */}
+      <CommandPalette
+        tasks={tasks}
+        onAddTask={() => setShowMobileAdd(true)}
+        onOpenFocusMode={toggleFocusMode}
+        onTaskClick={setModalTask}
+      />
     </>
   )
 }
