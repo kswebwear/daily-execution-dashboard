@@ -2561,6 +2561,49 @@ html.aurora .task-quick-btn {
   margin-right: 3px;
 }
 
+/* ── Command palette hint button (header) ─────────────────── */
+html.cyber .cmd-hint-btn {
+  border-color: rgba(0, 229, 255, 0.22);
+  color: rgba(0, 229, 255, 0.5);
+}
+html.cyber .cmd-hint-btn:hover {
+  border-color: rgba(0, 229, 255, 0.5);
+  color: rgba(0, 229, 255, 0.85);
+}
+html.cyber .cmd-hint-btn kbd {
+  background: rgba(0, 229, 255, 0.06);
+  border-color: rgba(0, 229, 255, 0.18);
+  color: rgba(0, 229, 255, 0.55);
+}
+
+html.jarvis .cmd-hint-btn {
+  border-color: var(--j-panel-border);
+  color: var(--j-text-dim);
+}
+html.jarvis .cmd-hint-btn:hover {
+  border-color: rgba(0, 212, 255, 0.45);
+  color: var(--j-cyan);
+}
+html.jarvis .cmd-hint-btn kbd {
+  background: rgba(0, 212, 255, 0.04);
+  border-color: rgba(0, 212, 255, 0.15);
+  color: rgba(0, 212, 255, 0.45);
+}
+
+html.aurora .cmd-hint-btn {
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(226, 232, 240, 0.4);
+}
+html.aurora .cmd-hint-btn:hover {
+  border-color: rgba(129, 140, 248, 0.45);
+  color: rgba(226, 232, 240, 0.75);
+}
+html.aurora .cmd-hint-btn kbd {
+  background: rgba(129, 140, 248, 0.08);
+  border-color: rgba(129, 140, 248, 0.2);
+  color: rgba(129, 140, 248, 0.65);
+}
+
 /* ── Mobile: full-width, top-anchored ─────────────────────── */
 @media (max-width: 767px) {
   .cmd-backdrop {

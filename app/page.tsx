@@ -2,6 +2,7 @@ import TaskBoard from "@/components/TaskBoard"
 import AuthButton from "@/components/AuthButton"
 import ThemeToggle from "@/components/ThemeToggle"
 import LiveClock from "@/components/LiveClock"
+import CommandPaletteHint from "@/components/CommandPaletteHint"
 import Link from "next/link"
 
 function getDateLabel(): string {
@@ -51,6 +52,7 @@ export default function Home() {
               >
                 History
               </Link>
+              <CommandPaletteHint />
               <ThemeToggle />
             </div>
             <AuthButton />
