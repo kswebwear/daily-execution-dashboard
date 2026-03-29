@@ -38,6 +38,7 @@ import InsightModal from "./InsightModal"
 import HistoryView from "./HistoryView"
 import MobileBottomNav, { MobileTab } from "./MobileBottomNav"
 import CommandPalette from "./CommandPalette"
+import WeeklyStreak from "./WeeklyStreak"
 import { usePomodoro } from "@/context/PomodoroContext"
 
 // ── Pending task sort ─────────────────────────────────────────────────────────
@@ -587,6 +588,9 @@ export default function TaskBoard() {
           onComplete={handleCompleteTask}
         />
       )}
+
+      {/* ── Weekly Streak ── */}
+      <WeeklyStreak tasks={tasks} />
 
       {/* ── Desktop controls bar (hidden on mobile) ── */}
       <div className="hidden md:flex items-center justify-between mb-6">

@@ -2,7 +2,7 @@
 
 **Product Specification — V2+**
 
-This document defines the long-term architecture, feature roadmap, and guardrails for the Daily Execution Dashboard.
+This document defines the feature roadmap and guardrails for the Daily Execution Dashboard.
 
 ---
 
@@ -18,20 +18,23 @@ This document defines the long-term architecture, feature roadmap, and guardrail
 | V2.4 | Mobile Native UX Layer | Completed |
 | V2.4.1 | Notes UX Improvements | Completed |
 | V2.4.2 | Manual Ordering + History Notes | Completed |
-| V2.5 | AI Productivity Layer | Planned |
+| V2.5 | Aurora Theme & Dashboard Depth System | Completed |
+| V2.6 | Command Palette | Completed |
+| V2.7 | Execution Score | Completed |
+| V2.8 | Momentum Mode | Planned |
+| V2.9 | Carry Forward Reflection | Planned |
+| V3.0 | Idea Capture | Planned |
 
 ---
 
-## Architectural Rules (Do Not Violate)
+## Architectural Rules
 
 - V1 core task behavior must never change.
 - Firestore schema changes must remain backward compatible.
 - All new fields must be optional.
-- Theme system must remain presentation-only.
+- Theme system must remain presentation-only (CSS variables).
 - No heavy third-party libraries without strong justification.
-- Avoid introducing global state unless necessary.
 - Performance must not degrade as features increase.
-- Any feature added must include a clear rollback path.
 - Analytics must compute client-side from already-fetched data.
 - No destructive migration of Firestore documents.
 
@@ -39,532 +42,224 @@ This document defines the long-term architecture, feature roadmap, and guardrail
 
 ## Data Migration Policy
 
-When new fields are added:
-
-- Must be optional.
+- New fields must be optional.
 - Existing tasks must continue working unchanged.
-
-Default values:
-
-```
-isRecurringDaily = false
-priority = "medium"
-```
-
-Rules:
-
 - No forced rewriting of existing documents.
-- No background batch rewriting.
 - No breaking schema changes.
+
+Default values: `isRecurringDaily = false`, `priority = "medium"`.
 
 ---
 
 ## Performance Guardrails
 
 - No heavy chart libraries (Chart.js, Recharts, etc.).
-- Heatmap must be custom lightweight grid.
-- Avoid unnecessary re-renders.
-- Avoid expensive Firestore reads.
-- No polling.
 - Memoize analytics calculations.
-- Avoid animation-heavy libraries.
+- Avoid unnecessary re-renders and expensive Firestore reads.
+- No polling. No animation-heavy libraries.
 
 ---
 
 ## Theme System Contract
 
-Theme behavior must follow strict rules.
-
-- Theme controlled via single theme state.
+- Theme controlled via single state, persisted in `localStorage` as `ded_theme`.
 - CSS variables drive all theme differences.
-- No inline conditional styling chaos.
-
-Adding a new theme requires:
-
-- Only new CSS variable definitions.
-- Minimal component logic changes.
-
-Persistence:
-
-```
-localStorage key: ded_theme
-```
-
-Theme must load before hydration to prevent UI flicker.
+- Theme must load before hydration (anti-flicker script).
+- Adding a new theme requires only new CSS variable definitions.
 
 ---
 
 ## V2.0 – Cloud Foundation [COMPLETED]
 
-Core platform migration.
-
-**Features:**
-
 - Firebase Authentication (Google Sign-In)
 - Firestore with offline persistence
-- Edit tasks
-- Delete tasks
+- Edit and delete tasks
 - Archive page (`/archive` route)
 - Migration modal on first login if local tasks exist
 
 ---
 
-## V2.1 – Experience Upgrade [COMPLETED]
-
-Cyberpunk visual theme.
-
-**Features:**
+## V2.1 – Cyberpunk Theme [COMPLETED]
 
 - `html.cyber` theme class
-- Theme toggle persisted in `localStorage`
-- Anti-flicker script in `layout.tsx`
-- Orbitron font applied to headings
+- Theme toggle persisted in localStorage
+- Anti-flicker script in layout.tsx
+- Orbitron font for headings
 - Deterministic neon tag colors
-- Live clock showing Sydney time
+- Live clock (Sydney time)
 - CSS animations only (no Framer Motion)
 
 ---
 
 ## V2.1.1 – JARVIS Theme [COMPLETED]
 
-A third visual theme inspired by Stark-style holographic HUD interfaces.
+Stark-style holographic HUD theme.
 
-### Design Philosophy
-
-- Cyan holographic interface
-- Clean futuristic visuals
-- Controlled glow effects
-- High readability
-
-### Visual Requirements
-
-#### Background
-
-- Deep navy gradient
-- Radial glow center
-- Optional faint grid
-
-#### Panels
-
-- Semi-transparent dark panels
-- Thin cyan borders
-- Soft inner glow
-
-#### Typography
-
-- Clean futuristic font
-- Slight letter spacing
-
-#### Header HUD
-
-- Tech divider lines
-- Section caps
-- Subtle animated accent bar
-
-#### Clock Enhancement
-
-- 24h format
-- Milliseconds
-- Date + timezone
-
-### Constraints
-
-- Must reuse existing theme architecture.
-- No Firestore changes.
-- No performance degradation.
+- Cyan holographic interface with controlled glow
+- Deep navy gradient with radial glow and faint grid
+- Semi-transparent panels with cyan borders
+- 24h clock with milliseconds and timezone
+- Focus mode dampens particles and grid
 
 ---
 
 ## V2.2 – Productivity Expansion [COMPLETED]
 
-Structured productivity intelligence without AI.
+### Recurring Tasks
 
-### Recurring Tasks (Daily Only)
-
-**Field:**
-
-```ts
-isRecurringDaily?: boolean
-```
-
-**Behavior:**
-
-If enabled and task is completed:
-
-- Auto-create next-day instance.
-- Prevent duplicate instances.
-- Preserve full completion history.
-
-**Scope limitations:**
-
-- No weekly recurrence.
-- No custom schedules.
+- `isRecurringDaily?: boolean` — on completion, auto-creates next-day instance
+- Prevents duplicate pending instances
 
 ### Priority System
 
-**Field:**
+- `priority?: "low" | "medium" | "high"` (default: `"medium"`)
+- Pending sort: high > medium > low > createdAt
 
-```ts
-priority?: "low" | "medium" | "high"
-```
+### Analytics Panel
 
-**Default:** `"medium"`
-
-Task sorting order:
-
-1. Priority (high → low)
-2. Created date
-
-### Basic Analytics Panel
-
-Toggleable analytics panel including:
-
-- Completion rate (7 days)
-- Current streak
-- Tag distribution bars
-- 30-day heatmap grid
-
-**Constraints:** No heavy chart libraries.
+- 7-day completion rate, current streak, tag distribution bars, 30-day heatmap
+- All client-side, no chart libraries
 
 ### Manual Task Ordering
 
-Users can drag pending tasks to set a persistent custom order. Until the first drag, tasks sort automatically by priority.
-
-**Schema field:**
-
-```ts
-orderIndex?: number  // optional; absence = automatic priority sort
-```
-
-**Two-mode sort for pending tasks:**
-
-| Condition | Sort order |
-|-----------|-----------|
-| No pending task has `orderIndex` | priority DESC → createdAt ASC |
-| Any pending task has `orderIndex` | orderIndex ASC → createdAt as tiebreaker |
-
-Check: `hasManualOrder = pending tasks.some(t => t.orderIndex !== undefined)`
-
-Priority order: `high > medium > low`
-
-**Completed tasks:** unaffected; sorted by completion date DESC.
-
-**New task creation:**
-- If `hasManualOrder = false`: no `orderIndex` assigned; task slots into priority sort automatically.
-- If `hasManualOrder = true`: `orderIndex = max(existing orderIndex) + 1`; task appends at the bottom of the manual list.
-
-**Drag reordering:**
-- First drag activates manual ordering for the session.
-- Assigns sequential `0, 1, 2…` indices to the entire pending list after drop.
-- Only tasks whose `orderIndex` value changed are written to Firestore (minimal writes).
-- Desktop: full drag-and-drop via dnd-kit PointerSensor.
-- Mobile: `orderIndex` persists via Firestore sync (mobile drag disabled to preserve scroll behaviour).
-
-**Backward compatible:** field is optional; tasks without `orderIndex` are unaffected until a drag occurs.
-
----
+- `orderIndex?: number` — set by drag-and-drop only
+- Two-mode sort: priority-based (default) vs manual (when any task has orderIndex)
+- Sequential `0,1,2...` indices assigned on drag; minimal Firestore writes
 
 ### Focus Mode
 
-Purpose: reduce cognitive load.
-
-**Features:**
-
-- Enter Focus Mode button
-- Shows only top 3 pending tasks
-- Full-screen layout
-- ESC exits focus mode
-
-Pomodoro not included here.
+- Shows top 3 pending tasks full-screen
+- ESC exits
 
 ---
 
 ## V2.3 – Cognitive Productivity Layer [COMPLETED]
 
-Enhances execution discipline.
-
 ### Pomodoro Timer
 
-**Features:**
-
-- 25 / 5 preset
-- Custom focus duration optional
-- Start / Pause / Reset
+- 25/5 preset with start/pause/reset
 - Works inside Focus Mode
-- Session logs stored per task
-
-No notifications. No background workers.
+- Session logs stored per task (`pomodoroSessions?: PomodoroSession[]`)
 
 ### Execution Playbook Panel
 
-Built-in productivity techniques.
+- 6 techniques: 5 Min Rule, Kaizen, Eat The Frog, MIT, Time Boxing, Ikigai
+- Apply-to-task writes note + optional priority update
 
-**Techniques:**
+### Weekly Insight
 
-- 5 Minute Rule
-- Kaizen
-- Eat The Frog
-- MIT
-- Time Boxing
-- Ikigai Alignment Prompt
-
-Each technique contains:
-
-- Explanation
-- When to use
-- Apply-to-task button
-
-No AI dependency.
-
-### Weekly Insight (Local Deterministic Summary)
-
-Insight generated locally using existing task data.
-
-**Displays:**
-
-- Most completed task
-- Most skipped task
-- 7-day completion rate
-- Top tag
-- Total Pomodoro sessions
-- Average focus duration
-
-No AI API calls.
-
----
-
-## V2.4 – Mobile Native UX Layer [PLANNED]
-
-Goal: Make the mobile experience behave like a native iPhone productivity app.
-
-Desktop experience remains unchanged.
-
-### Mobile Layout
-
-When screen width < 768px, replace Kanban layout with tab navigation.
-
-**Tabs:**
-
-- Pending
-- Completed
-- Insights
-
-Only one list visible at a time.
-
-### Bottom Navigation
-
-Mobile must use a fixed bottom navigation bar.
-
-**Layout:**
-
-```
-Pending | Completed | Insights
-```
-
-Navigation switches views without page reload.
-
-### Mobile Task Interaction
-
-Dragging across long vertical lists is not mobile-friendly.
-
-**Primary completion method:** Tap completion button
-
-**Optional gesture support:**
-
-- Swipe right → Complete task
-- Swipe left → Edit / Archive / Delete
-
-Must reuse existing task logic.
-
-### Floating Add Task Button
-
-Add mobile floating action button.
-
-**Position:** Bottom-right corner
-
-Tap opens task creation modal.
-
-### Task Card Mobile Improvements
-
-- Minimum height: 60px
-- Larger tap targets
-- Increased spacing
-- Smooth completion animation
-
-### Focus Mode Mobile Compatibility
-
-Focus Mode must:
-
-- Display active task clearly
-- Allow completion
-- Show Pomodoro timer prominently
-- Hide non-essential panels
-
-### Constraints
-
-- Desktop layout must remain unchanged.
-- No Firestore schema changes.
-- No heavy gesture libraries.
-- Maintain theme compatibility.
-- Maintain performance guardrails.
+- Local deterministic summary (no AI)
+- Shows: most completed/skipped task, 7-day rate, top tag, pomodoro stats
 
 ---
 
 ## V2.4 – Mobile Native UX Layer [COMPLETED]
 
-Goal: Make the mobile experience behave like a native iPhone productivity app.
-
-Desktop experience remains unchanged.
-
-### Mobile Layout
-
-When screen width < 768px, replace Kanban layout with tab navigation.
-
-**Tabs:**
-
-- Pending
-- Completed
-- History (replaced Insights tab; Insight modal accessible via top-bar button)
-
-Only one list visible at a time.
-
-### Bottom Navigation
-
-Mobile must use a fixed bottom navigation bar.
-
-**Layout:**
-
-```
-Pending | Completed | History
-```
-
-Navigation switches views without page reload.
-
-### Mobile Task Interaction
-
-**Primary completion method:** Tap completion button
-
-**Gesture support:**
-
-- Swipe right → Complete task
-- Swipe left → Edit / Archive / Delete
-
-### Floating Add Task Button
-
-Bottom-right corner. Tap opens task creation modal.
-
-### Task Card Mobile Improvements
-
-- Minimum height: 60px
-- Larger tap targets
-- Smooth completion animation
-
-### Focus Mode Mobile Compatibility
-
-Focus Mode hides nav and FAB when active.
-
-### History View
-
-- `/history` route (desktop) and "History" tab (mobile bottom nav)
-- Completion history grouped by date (Today / Yesterday / date string)
-- Derived client-side from existing `completionHistory[]` field
-- No Firestore schema changes
-- Pagination: 30 date-groups default, expandable in 30-group increments
-
-### Constraints
-
+- Tab navigation (Pending | Completed | History) replaces Kanban on mobile
+- Fixed bottom navigation bar
+- Swipe right to complete, swipe left for quick actions
+- Floating action button for task creation
+- Focus mode hides nav and FAB
+- History view: completion history grouped by date, paginated by 30 groups
 - Desktop layout unchanged
-- No Firestore schema changes
-- No heavy gesture libraries
-- Theme compatible
 
 ---
 
 ## V2.4.1 – Notes UX Improvements [COMPLETED]
 
-Enhanced notes editing and reading experience inside `TaskModal`.
-
-### Auto-Expanding Textarea (Desktop)
-
-- Textarea grows vertically as user types
-- Range: 80px minimum → 300px maximum
-- Beyond 300px: vertical scrollbar appears inside the textarea
-- Implementation: `resizeNote()` sets `el.style.height` to `scrollHeight` clamped to range; called via `useEffect` on `noteText` change
-- No scroll during normal typing; `overflow-y: hidden` below max, `auto` above
-
-### Expand / Collapse Notes (Daily Notes History)
-
-- Each historical note shows a 4-line collapsed preview (`max-height: 5.5rem`)
-- "Expand notes" / "Collapse" toggle per note entry
-- Animation: `max-height` CSS transition (0.25s ease) between `5.5rem` and `600px`
-- Toggle only shown when note qualifies: length > 200 chars OR > 3 newlines
-- State: `Set<number>` of expanded indices — no re-renders of other entries
-
-### Mobile Fullscreen Notes Modal
-
-- On mobile (<768px), the notes textarea is replaced by a tap-target button
-- Tapping opens a `z-[60]` fixed fullscreen overlay (above task modal at `z-50`)
-- Overlay: task title header + full scrollable textarea + single "Save note" footer
-- Auto-expand also applies inside the mobile overlay textarea
-- Closing with "Done" without saving discards unsaved changes; "Save note" persists
-
-### No Schema or Firestore Changes
-
-- Reuses existing `dailyNotes[]` field on Task
-- No new fields added
+- Auto-expanding textarea (80px–300px) in TaskModal
+- Expand/collapse per daily note entry (CSS transition)
+- Mobile fullscreen notes overlay (`z-[60]`)
 
 ---
 
 ## V2.4.2 – Manual Ordering + History Notes [COMPLETED]
 
-Two targeted UX improvements with no breaking changes.
-
-### Manual Task Ordering
-
-See documentation under V2.2 Productivity Expansion → Manual Task Ordering.
-
-### Notes Visibility in History View
-
-Each history entry now displays task notes inline.
-
-**History card fields shown:**
-
-- Task title
-- Tags (badge)
-- Priority (if non-medium)
-- Completion date
-- Notes preview (3-line clamp of most recent note)
-
-**Expand/Collapse (desktop):**
-
-- "Expand notes" link appears when note length > 150 chars, contains newlines, or task has notes on multiple days.
-- Expanded state shows all `dailyNotes` sorted newest-first, with date headers.
-- "Collapse" link returns to preview.
-
-**Mobile fullscreen modal:**
-
-- On mobile (< 768px), tapping "View notes" opens a `z-[70]` fixed fullscreen overlay.
-- Overlay shows all notes sorted newest-first with date headers.
-- "Close" button in header dismisses the modal.
-
-**Constraints:**
-
-- History remains read-only — no editing from History view.
-- No Firestore schema changes — reuses existing `dailyNotes[]` field.
-- No heavy libraries.
-- Compatible with all themes.
+- Manual task ordering via drag-and-drop (see V2.2)
+- History cards show title, tags, priority, completion date, 3-line notes preview
+- Desktop expand/collapse for full notes; mobile fullscreen modal (`z-[70]`)
+- History remains read-only
 
 ---
 
-## V2.5 – AI Productivity Layer [PLANNED]
+## V2.5 – Aurora Theme & Dashboard Depth System [COMPLETED]
 
-Future AI-assisted productivity.
+### Aurora Theme
 
-**Possible features:**
+- `html.aurora` class; 4-theme cycle: minimal > cyber > jarvis > aurora
+- Calm, premium aesthetic for long productivity sessions
+- Multi-layer radial gradient background (indigo + sky over dark slate)
+- Animated gradient blobs (`blur(48px)`, 32s/38s cycles)
 
-- AI weekly insight generation
-- Pattern analysis
-- Smart task recommendations
-- Natural language task creation
-- Voice task input
-- Conversational task clarification
+### Glass Panel System
+
+- Panels: `rgba(255,255,255,0.04)` + `blur(12px)` + soft border
+- Cards: `rgba(255,255,255,0.08)` + `blur(6px)` + stronger shadow
+- Hover elevation gated to `@media (hover:hover) and (pointer:fine)`
+
+### Dashboard Depth Layers
+
+| Layer | Element | Technique |
+|-------|---------|-----------|
+| 0 | Background | Multi-layer radial gradient, fixed attachment |
+| 0.5 | Aurora FX | Animated blobs with blur |
+| 1 | Panels | Glass containers |
+| 2 | Task cards | Elevated glass cards |
+| 3 | FAB / modals | Solid surfaces with glow |
+
+### Priority Sort Update
+
+- Priority always primary sort key
+- `orderIndex` secondary within same priority
+- New tasks never get orderIndex (drag-only)
+
+---
+
+## V2.6 – Command Palette [COMPLETED]
+
+- Global trigger: `Cmd+K` (Mac) / `Ctrl+K` (Windows/Linux)
+- Commands: Add Task, Search Tasks, Open Focus Mode, Open History, Open Archive, Switch Theme
+- "Search Tasks" sub-mode with Backspace to return
+- Arrow-key navigation + Enter/Escape
+- Theme-aware CSS (base + per-theme overrides)
+- No external libraries
+
+---
+
+## V2.7 – Execution Score [COMPLETED]
+
+### Weekly Streak Visualization
+
+- Horizontal row of 7 circular progress indicators (Mon–Sun)
+- Progress: `completedTasks / dailyCommitment` per day
+- States: full circle (goal met), partial circle (in progress), empty (no progress)
+- Current day highlighted with border/glow
+- CSS `conic-gradient` rendering (no chart libraries)
+- Click any day to see date, completions, and commitment
+- Supports all themes via CSS custom properties
+- Works on mobile and desktop
+
+---
+
+## V2.8 – Momentum Mode [PLANNED]
+
+- On task completion, suggest next task automatically
+- Selection priority: highest priority > next manual order > oldest pending
+- Inline suggestion card with "Start Focus" action
+
+---
+
+## V2.9 – Carry Forward Reflection [PLANNED]
+
+- If task carried forward 3+ consecutive days, show reflection prompt
+- Options: Too big / Not important / Need help / Break into smaller tasks
+- Non-intrusive (does not interrupt focus mode)
+
+---
+
+## V3.0 – Idea Capture [PLANNED]
+
+- Floating "+ Capture Idea" button
+- Quick input modal for fast idea entry
+- Ideas stored in Idea Vault section for later review
+- Must be extremely fast (< 2 seconds to open and save)

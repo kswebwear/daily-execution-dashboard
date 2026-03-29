@@ -2816,3 +2816,106 @@ html.aurora .cmd-footer kbd {
   border-color: rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
 }
+
+/* =========================================================
+   WEEKLY STREAK VISUALIZATION (V2.7)
+   ========================================================= */
+
+/* --- Base / Minimal theme --- */
+:root {
+  --streak-full:    #22c55e;
+  --streak-partial: #6366f1;
+  --streak-track:   rgba(63, 63, 70, 0.5);
+  --streak-inner:   #111111;
+  --streak-text:    #e5e5e5;
+  --streak-tooltip-bg: #1c1c1e;
+  --streak-tooltip-border: rgba(63, 63, 70, 0.6);
+  --streak-today-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+}
+
+.streak-ring {
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .streak-ring {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+.streak-ring-inner {
+  width: 24px;
+  height: 24px;
+  background: var(--streak-inner);
+  transition: background 0.2s ease;
+}
+
+@media (min-width: 768px) {
+  .streak-ring-inner {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+.streak-ring-text {
+  color: var(--streak-text);
+}
+
+.streak-today {
+  box-shadow: var(--streak-today-shadow);
+}
+
+.streak-tooltip {
+  background: var(--streak-tooltip-bg);
+  border: 1px solid var(--streak-tooltip-border);
+  color: var(--streak-text);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.streak-tooltip-date {
+  color: var(--streak-text);
+}
+
+.streak-tooltip-count {
+  font-weight: 600;
+}
+
+/* --- Cyber theme --- */
+html.cyber {
+  --streak-full:    #39ff14;
+  --streak-partial: #00e5ff;
+  --streak-track:   rgba(0, 229, 255, 0.12);
+  --streak-inner:   #0a0a12;
+  --streak-today-shadow: 0 0 8px rgba(0, 229, 255, 0.5), 0 0 0 2px rgba(0, 229, 255, 0.3);
+  --streak-tooltip-bg: rgba(10, 10, 18, 0.95);
+  --streak-tooltip-border: rgba(0, 229, 255, 0.2);
+}
+
+/* --- Jarvis theme --- */
+html.jarvis {
+  --streak-full:    #00d4ff;
+  --streak-partial: rgba(0, 212, 255, 0.6);
+  --streak-track:   rgba(0, 212, 255, 0.1);
+  --streak-inner:   rgba(0, 8, 22, 0.95);
+  --streak-today-shadow: 0 0 10px rgba(0, 212, 255, 0.4), 0 0 0 2px rgba(0, 212, 255, 0.3);
+  --streak-tooltip-bg: var(--j-panel-bg);
+  --streak-tooltip-border: var(--j-panel-border);
+}
+
+/* --- Aurora theme --- */
+html.aurora {
+  --streak-full:    #818cf8;
+  --streak-partial: rgba(129, 140, 248, 0.6);
+  --streak-track:   rgba(255, 255, 255, 0.06);
+  --streak-inner:   rgba(15, 23, 42, 0.95);
+  --streak-today-shadow: 0 0 12px rgba(129, 140, 248, 0.35), 0 0 0 2px rgba(129, 140, 248, 0.3);
+  --streak-tooltip-bg: rgba(255, 255, 255, 0.06);
+  --streak-tooltip-border: rgba(255, 255, 255, 0.1);
+}
+
+html.aurora .streak-tooltip {
+  backdrop-filter: blur(12px);
+}
