@@ -8,9 +8,11 @@ import {
   deleteDoc,
   writeBatch,
   arrayUnion,
+  getDoc,
 } from "firebase/firestore"
 import { db } from "./firebase"
 import { Task, PomodoroSession } from "./types"
+import { CommitmentMap } from "./commitment"
 
 function tasksRef(userId: string) {
   return collection(db, `users/${userId}/tasks`)
@@ -58,6 +60,27 @@ export async function appendPomodoroSession(
     updatedAt: new Date().toISOString(),
   })
 }
+
+// ── Daily Commitment ─────────────────────────────────────────────────────────
+
+function commitmentDoc(userId: string) {
+  return doc(db, `users/${userId}/meta/dailyCommitments`)
+}
+
+export async function loadFirestoreCommitments(userId: string): Promise<CommitmentMap> {
+  const snap = await getDoc(commitmentDoc(userId))
+  return snap.exists() ? (snap.data() as CommitmentMap) : {}
+}
+
+export async function saveFirestoreCommitment(
+  userId: string,
+  date: string,
+  value: number
+): Promise<void> {
+  await setDoc(commitmentDoc(userId), { [date]: value }, { merge: true })
+}
+
+// ── Migration ────────────────────────────────────────────────────────────────
 
 export async function migrateTasks(userId: string, tasks: Task[]): Promise<void> {
   const batch = writeBatch(db)

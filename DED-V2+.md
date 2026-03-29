@@ -21,6 +21,7 @@ This document defines the feature roadmap and guardrails for the Daily Execution
 | V2.5 | Aurora Theme & Dashboard Depth System | Completed |
 | V2.6 | Command Palette | Completed |
 | V2.7 | Execution Score | Completed |
+| V2.7.1 | Daily Commitment | Completed |
 | V2.8 | Momentum Mode | Planned |
 | V2.9 | Carry Forward Reflection | Planned |
 | V3.0 | Idea Capture | Planned |
@@ -238,6 +239,29 @@ Stark-style holographic HUD theme.
 - Click any day to see date, completions, and commitment
 - Supports all themes via CSS custom properties
 - Works on mobile and desktop
+
+---
+
+## V2.7.1 – Daily Commitment [COMPLETED]
+
+Required for progress accuracy in Weekly Streak.
+
+### Schema
+
+- `dailyCommitment?: number` — number of tasks user plans to complete for the day
+
+### Rules
+
+- User sets commitment at start of day (default fallback: `5`)
+- Progress calculation: `completedTasks / dailyCommitment`
+- If commitment is not set: fallback to `5` (not total tasks)
+- If `completedTasks > dailyCommitment`: progress capped at 100%
+
+### UX
+
+- Prompt user once per day: "How many tasks can you complete today?"
+- Editable anytime from dashboard
+- Display: `3 / 6 tasks completed`
 
 ---
 

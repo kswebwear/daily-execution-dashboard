@@ -3,25 +3,25 @@
 import { useMemo, useState } from "react"
 import { Task } from "@/lib/types"
 import { today } from "@/lib/carryForward"
+import { CommitmentMap, getCommitment } from "@/lib/commitment"
+import CommitmentPrompt from "./CommitmentPrompt"
 
 type Props = {
   tasks: Task[]
+  commitments: CommitmentMap
+  onSetCommitment: (date: string, value: number) => void
 }
-
-// Daily commitment: minimum tasks to consider a day "fully complete"
-const DAILY_COMMITMENT = 3
 
 function getWeekDays(): { label: string; date: string; isToday: boolean }[] {
   const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Australia/Sydney" })
   const dayFmt = new Intl.DateTimeFormat("en-AU", { weekday: "short", timeZone: "Australia/Sydney" })
   const todayStr = today()
 
-  // Find Monday of the current week
   const now = new Date()
   const sydneyDay = new Date(
     now.toLocaleString("en-US", { timeZone: "Australia/Sydney" })
   )
-  const dayOfWeek = sydneyDay.getDay() // 0=Sun
+  const dayOfWeek = sydneyDay.getDay()
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
   const monday = new Date(sydneyDay)
   monday.setDate(sydneyDay.getDate() + mondayOffset)
@@ -41,14 +41,14 @@ function getWeekDays(): { label: string; date: string; isToday: boolean }[] {
   return days
 }
 
-export default function WeeklyStreak({ tasks }: Props) {
+export default function WeeklyStreak({ tasks, commitments, onSetCommitment }: Props) {
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
+  const todayStr = today()
 
   const activeTasks = useMemo(() => tasks.filter((t) => !(t.archived ?? false)), [tasks])
 
   const weekDays = useMemo(() => getWeekDays(), [])
 
-  // Build completions-per-day map from completionHistory
   const completionsPerDay = useMemo(() => {
     const map: Record<string, number> = {}
     for (const task of activeTasks) {
@@ -59,26 +59,25 @@ export default function WeeklyStreak({ tasks }: Props) {
     return map
   }, [activeTasks])
 
-  // Build pending-per-day: count tasks that were pending on each day
-  // For simplicity, we use commitment as the denominator
   const dayData = useMemo(() => {
     return weekDays.map((day) => {
       const completed = completionsPerDay[day.date] ?? 0
-      const commitment = DAILY_COMMITMENT
+      const commitment = getCommitment(commitments, day.date)
       const progress = Math.min(completed / commitment, 1)
       return { ...day, completed, commitment, progress }
     })
-  }, [weekDays, completionsPerDay])
+  }, [weekDays, completionsPerDay, commitments])
+
+  const todayData = dayData.find((d) => d.isToday)
+  const todayCompleted = todayData?.completed ?? 0
+  const todayCommitment = todayData?.commitment ?? 5
 
   function handleDayClick(date: string) {
     setExpandedDay((prev) => (prev === date ? null : date))
   }
 
-  // Conic gradient: filled portion uses accent color, remainder is transparent/muted
-  function conicStyle(progress: number, isToday: boolean) {
+  function conicStyle(progress: number) {
     const deg = Math.round(progress * 360)
-    // The color is determined by CSS custom properties per theme
-    // We use a CSS class approach but inline the conic-gradient
     const fillColor = progress >= 1
       ? "var(--streak-full, #22c55e)"
       : "var(--streak-partial, #818cf8)"
@@ -101,35 +100,41 @@ export default function WeeklyStreak({ tasks }: Props) {
               {day.label}
             </span>
 
-            {/* Circular progress ring */}
             <button
               onClick={() => handleDayClick(day.date)}
               className={`streak-ring relative flex items-center justify-center rounded-full transition-all duration-200 ${
                 day.isToday ? "streak-today" : ""
               }`}
-              style={conicStyle(day.progress, day.isToday)}
+              style={conicStyle(day.progress)}
               title={`${day.date}: ${day.completed}/${day.commitment}`}
             >
-              {/* Inner circle cutout */}
               <span className="streak-ring-inner absolute rounded-full" />
-              {/* Center label */}
               <span className="relative z-10 text-[10px] md:text-xs font-semibold tabular-nums streak-ring-text">
                 {day.completed > 0 ? day.completed : ""}
               </span>
             </button>
 
-            {/* Expanded tooltip on click */}
             {expandedDay === day.date && (
               <div className="streak-tooltip absolute top-full mt-2 z-30 px-3 py-2 rounded-lg text-xs whitespace-nowrap">
                 <p className="font-medium streak-tooltip-date">{day.date}</p>
                 <p className="mt-0.5">
-                  <span className="streak-tooltip-count">{day.completed}</span> completed
+                  <span className="streak-tooltip-count">{day.completed}</span> / {day.commitment} completed
                 </p>
-                <p className="opacity-60">Goal: {day.commitment}</p>
               </div>
             )}
           </div>
         ))}
+      </div>
+
+      {/* Progress label + commitment editor */}
+      <div className="flex items-center justify-center gap-3 mt-2">
+        <span className="text-[10px] md:text-xs text-zinc-600 tabular-nums">
+          {todayCompleted} / {todayCommitment} tasks completed
+        </span>
+        <CommitmentPrompt
+          currentValue={commitments[todayStr]}
+          onSet={(v) => onSetCommitment(todayStr, v)}
+        />
       </div>
     </div>
   )

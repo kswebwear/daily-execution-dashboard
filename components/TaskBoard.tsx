@@ -25,7 +25,14 @@ import {
   updateTask,
   permanentDeleteTask as _permanentDeleteTask,
   migrateTasks,
+  loadFirestoreCommitments,
+  saveFirestoreCommitment,
 } from "@/lib/firestore"
+import {
+  CommitmentMap,
+  loadCommitments,
+  saveCommitments,
+} from "@/lib/commitment"
 import { useIsMobile } from "@/lib/useIsMobile"
 import TaskColumn from "./TaskColumn"
 import TaskModal from "./TaskModal"
@@ -221,6 +228,26 @@ export default function TaskBoard() {
   const [showInsight, setShowInsight] = useState(false)
   const [mobileTab, setMobileTab] = useState<MobileTab>("pending")
   const [showMobileAdd, setShowMobileAdd] = useState(false)
+  const [commitments, setCommitments] = useState<CommitmentMap>({})
+
+  // Load commitments
+  useEffect(() => {
+    if (!user) {
+      setCommitments(loadCommitments())
+      return
+    }
+    loadFirestoreCommitments(user.uid).then(setCommitments)
+  }, [user])
+
+  function handleSetCommitment(date: string, value: number) {
+    const updated = { ...commitments, [date]: value }
+    setCommitments(updated)
+    if (!user) {
+      saveCommitments(updated)
+    } else {
+      saveFirestoreCommitment(user.uid, date, value)
+    }
+  }
 
   // Load tasks — Firestore when logged in, localStorage otherwise
   useEffect(() => {
@@ -590,7 +617,11 @@ export default function TaskBoard() {
       )}
 
       {/* ── Weekly Streak ── */}
-      <WeeklyStreak tasks={tasks} />
+      <WeeklyStreak
+        tasks={tasks}
+        commitments={commitments}
+        onSetCommitment={handleSetCommitment}
+      />
 
       {/* ── Desktop controls bar (hidden on mobile) ── */}
       <div className="hidden md:flex items-center justify-between mb-6">
