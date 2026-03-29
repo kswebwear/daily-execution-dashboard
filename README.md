@@ -1,17 +1,65 @@
 # Daily Execution Dashboard
 
-A minimal, dark-mode task board for daily accountability. No accounts. No backend. No noise.
+A personal productivity dashboard for daily task execution and accountability. Dark-mode, theme-rich, mobile-native.
 
 **Live:** https://ded-app-lemon.vercel.app
 **Repo:** https://github.com/kswebwear/daily-execution-dashboard
 
 ---
 
-## Accessing the Dashboard
+## Features
 
-Open the live URL in any browser — desktop or mobile. No login, no setup required.
+### Core
 
-To run locally:
+- Create, edit, delete, and archive tasks
+- Drag-and-drop reordering (desktop)
+- Swipe gestures for completion and quick actions (mobile)
+- Daily carry-forward: incomplete tasks auto-reset to pending each day
+- Daily notes per task with date-stamped history
+- Completion history tracking across all days
+- Priority system (high / medium / low) with automatic sorting
+- Recurring daily tasks with auto-creation of next-day instances
+- Manual task ordering via drag-and-drop
+
+### Productivity Tools
+
+- **Focus Mode** — full-screen view showing top 3 pending tasks
+- **Pomodoro Timer** — 25/5 timer with session logging per task
+- **Execution Playbook** — 6 built-in techniques (5 Min Rule, Kaizen, Eat The Frog, MIT, Time Boxing, Ikigai)
+- **Weekly Insight** — local deterministic summary of completion patterns
+- **Analytics Panel** — 7-day rate, streak, tag distribution, 30-day heatmap
+- **Weekly Streak** — circular progress indicators (Mon-Sun) with daily commitment goals
+- **Command Palette** — keyboard-driven navigation and actions (Cmd+K / Ctrl+K)
+
+### Themes
+
+Four visual themes, cycled via toggle button:
+
+1. **Minimal** — clean dark mode
+2. **Cyber** — neon cyberpunk with animated gradient
+3. **JARVIS** — holographic HUD with particles and grid
+4. **Aurora** — glass morphism with animated gradient blobs
+
+All themes use CSS variables. Theme loads before hydration (no flash).
+
+### Mobile
+
+- Tab navigation (Pending | Completed | History) replaces Kanban
+- Fixed bottom navigation bar
+- Floating action button for task creation
+- Fullscreen overlays for notes
+- Touch-optimized card sizes and tap targets
+
+### Cloud (V2.0+)
+
+- Firebase Authentication (Google Sign-In)
+- Firestore with offline persistence
+- Works without login (localStorage fallback)
+- Migration modal on first login
+
+---
+
+## Getting Started
 
 ```bash
 git clone https://github.com/kswebwear/daily-execution-dashboard
@@ -20,179 +68,153 @@ npm install
 npm run dev
 ```
 
-Then open http://localhost:3000.
+Open http://localhost:3000.
 
----
+### Environment Variables
 
-## Creating a Task
-
-1. In the **Pending** column, click **+ Add task** at the bottom.
-2. The form expands inline. Fill in:
-   - **Title** — required. What you need to do today.
-   - **Tag** — optional. A free-text label (e.g. `work`, `personal`, `health`).
-3. Press **Add** or hit Enter.
-
-The task appears immediately in the Pending column. It is saved to your browser's local storage on creation.
-
-**What gets auto-assigned:**
-- A unique ID
-- `createdAt` set to today's date
-- `status` set to `pending`
-
----
-
-## Completing a Task
-
-Drag a task card from the **Pending** column and drop it into the **Completed Today** column.
-
-- On desktop: click, hold, drag across.
-- On mobile: press and hold for ~150ms until the card lifts, then drag.
-
-When a task is dropped into Completed:
-- Its `status` is set to `completed`
-- An entry is appended to its `completionHistory` with today's date
-
-You can drag it back to Pending at any time. The completion history entry is **not deleted** — the record that it was completed today is preserved.
-
-You can also reorder tasks within a column by dragging them above or below each other.
-
----
-
-## Adding Notes to a Task
-
-Click the **···** button that appears on hover (or tap on mobile) on any task card. This opens the task history modal.
-
-In the modal:
-- Write a note in the **Note for today** field.
-- Click **Save note**.
-
-Notes are date-stamped to today and stored in the task's `dailyNotes` array. If you open the modal again today, the note is pre-filled so you can edit it. Saving with an empty field removes today's note.
-
-**Use case for partial work:** If you started a task but didn't finish, drag it back to Pending and add a note explaining where you left off. The note carries forward to tomorrow so you have context when you pick it up again.
-
----
-
-## Viewing Task History
-
-Click **···** on any task card to open its history modal. It shows:
-
-- **Created date**
-- **Note for today** — editable
-- **Completion history** — every date this task was completed, newest first
-- **Daily notes** — all notes from all days, newest first
-
----
-
-## Deleting a Task
-
-Task deletion is **not available in V1**. This is intentional — the dashboard is designed for accountability, and removing a task erases the record that it existed.
-
-If you need to clear everything (e.g. reset for testing), you can manually clear local storage from your browser's DevTools:
+For cloud features, create `ded-app/.env.local`:
 
 ```
-DevTools → Application → Local Storage → your domain → Delete all
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
 ```
 
-Task deletion is planned for a future version.
-
----
-
-## How Data is Stored
-
-All data lives in your browser's **local storage**. Nothing is sent to a server.
-
-| Key | Contents |
-|---|---|
-| `execution_dashboard_tasks` | JSON array of all tasks |
-| `execution_dashboard_last_active` | Last date the app was opened (YYYY-MM-DD) |
-
-**Data only exists in the browser you use.** It will not sync across devices. Clearing browser data or using a different browser will start fresh.
-
-**Timezone:** All dates are calculated in `Australia/Sydney` time (AEDT/AEST). The day boundary for carry-forward and date-stamping is midnight Sydney time, regardless of where you physically access the app.
-
-### Task object structure
-
-```ts
-{
-  id: string                      // UUID, auto-generated
-  title: string                   // Task title
-  tag: string                     // Free-text tag, may be empty
-  createdAt: string               // YYYY-MM-DD, date task was created
-  status: "pending" | "completed" // Current status
-  dailyNotes: {
-    date: string                  // YYYY-MM-DD
-    text: string                  // Note content
-  }[]
-  completionHistory: {
-    date: string                  // YYYY-MM-DD, date it was completed
-    note?: string                 // Optional note (reserved for future use)
-  }[]
-}
-```
-
-Every state change (create, drag, note save) immediately writes the full task array back to local storage.
-
----
-
-## How Pending Tasks Carry Forward
-
-When the app loads, it compares today's date against the last recorded active date.
-
-**Same day:** Nothing changes. The board shows exactly what you left it as.
-
-**New day:** All tasks with `status: "completed"` are reset to `status: "pending"`. Their `completionHistory` is preserved — you can still see every date they were previously completed. Pending tasks are untouched (they were already carrying forward).
-
-This means:
-- Every day starts with a full Pending column of everything not yet done
-- You never manually roll over tasks
-- A task completed yesterday reappears today, ready to be done again or noted as ongoing
-
-The last active date is updated to today as part of this check, so the reset only fires once per day regardless of how many times you open the app.
+Without these, the app works in localStorage-only mode.
 
 ---
 
 ## Tech Stack
 
 | Concern | Choice |
-|---|---|
+|---------|--------|
 | Framework | Next.js 16 (App Router) |
 | Styling | Tailwind CSS |
 | Drag and drop | @dnd-kit/core + @dnd-kit/sortable |
-| Persistence | Browser LocalStorage |
-| Backend | None |
-| Auth | None |
-| Deployment | Vercel |
+| Auth | Firebase Authentication (Google) |
+| Database | Cloud Firestore (offline persistence) |
+| Deployment | Vercel (auto-deploy on push to main) |
 | Timezone | Australia/Sydney (AEDT/AEST) |
 
-### Project structure
+---
+
+## Project Structure
 
 ```
 app/
-  layout.tsx          Root layout, dark background, Geist font
-  page.tsx            Main page with date header
-  globals.css         Tailwind base + dark scrollbar
+  layout.tsx            Root layout, theme providers, anti-flicker script
+  page.tsx              Main dashboard page with header
+  globals.css           Tailwind base + all theme CSS
+  archive/page.tsx      Archive view
+  history/page.tsx      History view (desktop)
 components/
-  TaskBoard.tsx       DnD context, state, localStorage orchestration
-  TaskColumn.tsx      Droppable pending / completed column
-  TaskCard.tsx        Draggable task card with note preview
-  AddTaskForm.tsx     Inline expand/collapse task creation form
-  TaskModal.tsx       History modal with note editor
+  TaskBoard.tsx         Main orchestrator: DnD, state, persistence
+  TaskColumn.tsx        Droppable column (pending / completed)
+  TaskCard.tsx          Draggable card with swipe gestures
+  AddTaskForm.tsx       Inline task creation form
+  TaskModal.tsx         Task detail modal with notes editor
+  WeeklyStreak.tsx      Weekly progress rings with commitment
+  CommitmentPrompt.tsx  Daily commitment input
+  AnalyticsPanel.tsx    Stats, heatmap, tag distribution
+  PomodoroTimer.tsx     Focus timer with session logging
+  PlaybookPanel.tsx     Productivity techniques
+  InsightModal.tsx      Weekly insight summary
+  FocusModeView.tsx     Full-screen focus overlay
+  HistoryView.tsx       Completion history grouped by date
+  CommandPalette.tsx    Keyboard command palette (Cmd+K)
+  MobileBottomNav.tsx   Mobile tab navigation
+  LiveClock.tsx         Real-time Sydney clock
+  ThemeToggle.tsx       Theme cycle button
+  AuthButton.tsx        Sign in / sign out
+context/
+  ThemeContext.tsx       Theme state, focus mode, cycle logic
+  AuthContext.tsx        Firebase auth state
+  PomodoroContext.tsx    Global timer state machine
 lib/
-  types.ts            Task type definition
-  storage.ts          LocalStorage read/write helpers
-  carryForward.ts     New-day reset logic
+  types.ts              Task and PomodoroSession types
+  storage.ts            localStorage helpers
+  commitment.ts         Daily commitment persistence
+  carryForward.ts       New-day reset logic
+  firestore.ts          Firestore CRUD + commitment storage
+  firebase.ts           Firebase app initialization
+  theme.ts              Tag color hashing, theme utilities
+  useIsMobile.ts        matchMedia hook for responsive behavior
 ```
 
 ---
 
-## Deploying Updates
+## Data Model
 
-The Vercel project is connected to the GitHub repository. Any push to `main` triggers an automatic redeploy.
-
-```bash
-git add .
-git commit -m "your change"
-git push
+```ts
+type Task = {
+  id: string
+  title: string
+  tag: string
+  createdAt: string                   // YYYY-MM-DD
+  status: "pending" | "completed"
+  dailyNotes: { date: string; text: string }[]
+  completionHistory: { date: string; note?: string }[]
+  archived?: boolean
+  updatedAt?: string
+  priority?: "low" | "medium" | "high"
+  isRecurringDaily?: boolean
+  pomodoroSessions?: PomodoroSession[]
+  orderIndex?: number
+}
 ```
 
-Vercel will pick it up within ~30 seconds.
+All fields after `completionHistory` are optional for backward compatibility.
+
+---
+
+## How It Works
+
+### Daily Carry-Forward
+
+On each new day (midnight Sydney time), all completed tasks reset to pending. Completion history is preserved. Pending tasks carry forward unchanged.
+
+### Weekly Streak
+
+Seven circular progress rings (Mon-Sun) using CSS `conic-gradient`. Progress = `completedTasks / dailyCommitment`. Users set their daily commitment goal; past days without a commitment fallback to 5.
+
+### Storage Strategy
+
+- **Logged out:** localStorage (`execution_dashboard_tasks`)
+- **Logged in:** Firestore (`users/{uid}/tasks/`) with real-time subscription
+- **Commitments:** localStorage (`ded_daily_commitments`) or Firestore (`users/{uid}/meta/dailyCommitments`)
+
+---
+
+## Deployment
+
+Connected to Vercel. Any push to `main` auto-deploys:
+
+```bash
+git push origin main
+```
+
+---
+
+## Version History
+
+| Version | Scope |
+|---------|-------|
+| V2.7.2 | Streak Panel Polish |
+| V2.7.1 | Daily Commitment System |
+| V2.7 | Weekly Streak Visualization |
+| V2.6 | Command Palette (Cmd+K) |
+| V2.5 | Aurora Theme & Dashboard Depth |
+| V2.4.2 | Manual Ordering + History Notes |
+| V2.4.1 | Notes UX Improvements |
+| V2.4 | Mobile Native UX Layer |
+| V2.3 | Pomodoro, Playbook, Insight |
+| V2.2 | Priority, Recurring, Analytics, Focus Mode |
+| V2.1.1 | JARVIS Theme |
+| V2.1 | Cyberpunk Theme |
+| V2.0 | Firebase Cloud Foundation |
+| V1 | Core task board (localStorage) |
+
+See [DED-V2+.md](./DED-V2+.md) for the full product specification and roadmap.
