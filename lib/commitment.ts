@@ -23,4 +23,3 @@ export function getCommitment(map: CommitmentMap, date: string): number {
   return map[date] ?? DEFAULT_COMMITMENT
 }
 
-export { DEFAULT_COMMITMENT }

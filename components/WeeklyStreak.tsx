@@ -59,18 +59,23 @@ export default function WeeklyStreak({ tasks, commitments, onSetCommitment }: Pr
     return map
   }, [activeTasks])
 
+  const todayHasCommitment = commitments[todayStr] !== undefined
+
   const dayData = useMemo(() => {
     return weekDays.map((day) => {
       const completed = completionsPerDay[day.date] ?? 0
+      const hasCommitment = commitments[day.date] !== undefined
       const commitment = getCommitment(commitments, day.date)
-      const progress = Math.min(completed / commitment, 1)
-      return { ...day, completed, commitment, progress }
+      // Today with no commitment set → show 0 progress (rings empty until user sets goal)
+      const progress = (day.isToday && !hasCommitment)
+        ? 0
+        : Math.min(completed / commitment, 1)
+      return { ...day, completed, commitment, progress, hasCommitment }
     })
   }, [weekDays, completionsPerDay, commitments])
 
   const todayData = dayData.find((d) => d.isToday)
   const todayCompleted = todayData?.completed ?? 0
-  const todayCommitment = todayData?.commitment ?? 5
 
   function handleDayClick(date: string) {
     setExpandedDay((prev) => (prev === date ? null : date))
@@ -110,7 +115,7 @@ export default function WeeklyStreak({ tasks, commitments, onSetCommitment }: Pr
             >
               <span className="streak-ring-inner absolute rounded-full" />
               <span className="relative z-10 text-[10px] md:text-xs font-semibold tabular-nums streak-ring-text">
-                {day.completed > 0 ? day.completed : ""}
+                {day.isToday && !day.hasCommitment ? "?" : day.completed > 0 ? day.completed : ""}
               </span>
             </button>
 
@@ -127,10 +132,12 @@ export default function WeeklyStreak({ tasks, commitments, onSetCommitment }: Pr
       </div>
 
       {/* Progress label + commitment editor */}
-      <div className="flex items-center justify-center gap-3 mt-2">
-        <span className="text-[10px] md:text-xs text-zinc-600 tabular-nums">
-          {todayCompleted} / {todayCommitment} tasks completed
-        </span>
+      <div className="flex items-center justify-center gap-3 mt-2 flex-wrap">
+        {todayHasCommitment && (
+          <span className="text-[10px] md:text-xs text-zinc-600 tabular-nums">
+            {todayCompleted} / {commitments[todayStr]} tasks completed
+          </span>
+        )}
         <CommitmentPrompt
           currentValue={commitments[todayStr]}
           onSet={(v) => onSetCommitment(todayStr, v)}

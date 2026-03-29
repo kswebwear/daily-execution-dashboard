@@ -2919,3 +2919,20 @@ html.aurora {
 html.aurora .streak-tooltip {
   backdrop-filter: blur(12px);
 }
+
+/* --- Commitment prompt theming --- */
+html.cyber .commitment-ask {
+  border-color: rgba(0, 229, 255, 0.2);
+  background: rgba(10, 10, 18, 0.6);
+}
+
+html.jarvis .commitment-ask {
+  border-color: var(--j-panel-border);
+  background: var(--j-panel-bg);
+}
+
+html.aurora .commitment-ask {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+}
