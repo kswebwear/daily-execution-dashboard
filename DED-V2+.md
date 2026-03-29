@@ -22,6 +22,7 @@ This document defines the feature roadmap and guardrails for the Daily Execution
 | V2.6 | Command Palette | Completed |
 | V2.7 | Execution Score | Completed |
 | V2.7.1 | Daily Commitment | Completed |
+| V2.7.2 | Streak Panel Polish | Completed |
 | V2.8 | Momentum Mode | Planned |
 | V2.9 | Carry Forward Reflection | Planned |
 | V3.0 | Idea Capture | Planned |
@@ -262,6 +263,41 @@ Required for progress accuracy in Weekly Streak.
 - Prompt user once per day: "How many tasks can you complete today?"
 - Editable anytime from dashboard
 - Display: `3 / 6 tasks completed`
+
+---
+
+## V2.7.2 – Streak Panel Polish [COMPLETED]
+
+Visual and layout refinements to the weekly streak bar.
+
+### Layout
+
+- Rings span full container width (`justify-between` instead of centered cluster)
+- Streak wrapped in themed panel with background, border, rounded corners
+- Larger rings on desktop (48px vs 42px) and mobile (38px vs 36px)
+- Today's day label highlighted with theme accent color
+
+### Progress Bar
+
+- Thin horizontal bar below rings showing today's completion percentage
+- Only visible after commitment is set
+- Uses themed fill color and track
+
+### Footer
+
+- Left-aligned: "X / Y tasks" label + commitment editor
+- Right-aligned: percentage label
+- Commitment prompt integrated into panel footer
+
+### Tooltip
+
+- Centered below ring via `left-1/2 -translate-x-1/2`
+
+### Constraints
+
+- No new libraries
+- All theming via CSS custom properties
+- Backward compatible
 
 ---
 

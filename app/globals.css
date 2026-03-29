@@ -2831,32 +2831,44 @@ html.aurora .cmd-footer kbd {
   --streak-tooltip-bg: #1c1c1e;
   --streak-tooltip-border: rgba(63, 63, 70, 0.6);
   --streak-today-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+  --streak-panel-bg: rgba(24, 24, 27, 0.6);
+  --streak-panel-border: rgba(63, 63, 70, 0.4);
+  --streak-bar-track: rgba(63, 63, 70, 0.4);
+  --streak-bar-fill: #6366f1;
+  --streak-label-today: #e5e5e5;
 }
 
+/* Panel container */
+.streak-panel {
+  background: var(--streak-panel-bg);
+  border: 1px solid var(--streak-panel-border);
+}
+
+/* Ring sizes */
 .streak-ring {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   cursor: pointer;
 }
 
 @media (min-width: 768px) {
   .streak-ring {
-    width: 42px;
-    height: 42px;
+    width: 48px;
+    height: 48px;
   }
 }
 
 .streak-ring-inner {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   background: var(--streak-inner);
   transition: background 0.2s ease;
 }
 
 @media (min-width: 768px) {
   .streak-ring-inner {
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
   }
 }
 
@@ -2864,10 +2876,24 @@ html.aurora .cmd-footer kbd {
   color: var(--streak-text);
 }
 
+.streak-label-today {
+  color: var(--streak-label-today);
+}
+
 .streak-today {
   box-shadow: var(--streak-today-shadow);
 }
 
+/* Progress bar */
+.streak-progress-track {
+  background: var(--streak-bar-track);
+}
+
+.streak-progress-fill {
+  background: var(--streak-bar-fill);
+}
+
+/* Tooltip */
 .streak-tooltip {
   background: var(--streak-tooltip-bg);
   border: 1px solid var(--streak-tooltip-border);
@@ -2892,6 +2918,11 @@ html.cyber {
   --streak-today-shadow: 0 0 8px rgba(0, 229, 255, 0.5), 0 0 0 2px rgba(0, 229, 255, 0.3);
   --streak-tooltip-bg: rgba(10, 10, 18, 0.95);
   --streak-tooltip-border: rgba(0, 229, 255, 0.2);
+  --streak-panel-bg: rgba(10, 10, 18, 0.5);
+  --streak-panel-border: rgba(0, 229, 255, 0.15);
+  --streak-bar-track: rgba(0, 229, 255, 0.1);
+  --streak-bar-fill: #00e5ff;
+  --streak-label-today: #00e5ff;
 }
 
 /* --- Jarvis theme --- */
@@ -2903,6 +2934,11 @@ html.jarvis {
   --streak-today-shadow: 0 0 10px rgba(0, 212, 255, 0.4), 0 0 0 2px rgba(0, 212, 255, 0.3);
   --streak-tooltip-bg: var(--j-panel-bg);
   --streak-tooltip-border: var(--j-panel-border);
+  --streak-panel-bg: var(--j-panel-bg);
+  --streak-panel-border: var(--j-panel-border);
+  --streak-bar-track: rgba(0, 212, 255, 0.1);
+  --streak-bar-fill: var(--j-cyan);
+  --streak-label-today: var(--j-cyan);
 }
 
 /* --- Aurora theme --- */
@@ -2914,6 +2950,15 @@ html.aurora {
   --streak-today-shadow: 0 0 12px rgba(129, 140, 248, 0.35), 0 0 0 2px rgba(129, 140, 248, 0.3);
   --streak-tooltip-bg: rgba(255, 255, 255, 0.06);
   --streak-tooltip-border: rgba(255, 255, 255, 0.1);
+  --streak-panel-bg: var(--a-panel-bg);
+  --streak-panel-border: var(--a-panel-border);
+  --streak-bar-track: rgba(255, 255, 255, 0.06);
+  --streak-bar-fill: var(--a-accent);
+  --streak-label-today: var(--a-accent-bright);
+}
+
+html.aurora .streak-panel {
+  backdrop-filter: blur(12px);
 }
 
 html.aurora .streak-tooltip {
